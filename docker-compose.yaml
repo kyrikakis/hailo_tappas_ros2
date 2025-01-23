@@ -1,0 +1,21 @@
+services:
+  hailo-rpi-ros2:
+    build: .
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
+      - UDEV=1
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev:/dev
+      - /lib/firmware:/lib/firmware
+      - /run/udev:/run/udev:ro
+    privileged: true
+    network_mode: host
+    ipc: host
+    tty: true
+    stdin_open: true
+    group_add:
+      - 44
