@@ -41,16 +41,18 @@ RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
 RUN git clone https://github.com/hailo-ai/hailo-rpi5-examples.git && \
     cd hailo-rpi5-examples && ./download_resources.sh
 
-# RUN wget https://s3.ap-northeast-1.wasabisys.com/download-raw/dpkg/ros2-desktop/debian/bookworm/ros-jazzy-desktop-0.3.2_20240525_arm64.deb && \
-#     apt install ./ros-jazzy-desktop-0.3.2_20240525_arm64.deb && \
-#     pip install --break-system-packages vcstool psutil colcon-common-extensions
+RUN git clone https://github.com/kyrikakis/tappas.git
 
-# RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
-# RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+RUN wget https://s3.ap-northeast-1.wasabisys.com/download-raw/dpkg/ros2-desktop/debian/bookworm/ros-jazzy-desktop-0.3.2_20240525_arm64.deb && \
+    apt install -y ./ros-jazzy-desktop-0.3.2_20240525_arm64.deb && \
+    pip install --break-system-packages vcstool psutil colcon-common-extensions
 
-# COPY ros_entrypoint.sh /ros_entrypoint.sh
-# RUN chmod +x  /ros_entrypoint.sh
-# ENTRYPOINT ["/ros_entrypoint.sh"]
+RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
+COPY ros_entrypoint.sh /ros_entrypoint.sh
+RUN chmod +x  /ros_entrypoint.sh
+ENTRYPOINT ["/ros_entrypoint.sh"]
 
 RUN mkdir -p /workspaces/hailo-rpi-ros2/
 COPY . /workspaces/hailo-rpi-ros2/

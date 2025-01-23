@@ -1,5 +1,5 @@
 services:
-  hailo-rpi-ros2:
+  hailo-rpi-service:
     build: .
     environment:
       - DISPLAY=${DISPLAY}

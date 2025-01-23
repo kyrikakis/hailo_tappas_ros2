@@ -1,8 +1,7 @@
 {
-    "name": "Robot_Pi_4WD_ROS",
+    "name": "hailo-rpi-ros2",
     "dockerComposeFile": "../docker-compose.yaml",
-    "service": "hailo-rpi-ros2
-    ",
+    "service": "hailo-rpi-service",
     "workspaceFolder": "/workspaces/hailo-rpi-ros2",
     "overrideCommand": false,
     // "updateContentCommand": "bash .devcontainer/post_creation_script.sh",
