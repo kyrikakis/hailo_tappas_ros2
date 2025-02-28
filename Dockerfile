@@ -38,8 +38,7 @@ RUN apt-get install -y python3-venv meson python3-picamera2
 RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
 
 # Download Hailo examples
-RUN git clone https://github.com/hailo-ai/hailo-rpi5-examples.git && \
-    cd hailo-rpi5-examples && ./download_resources.sh
+RUN git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
 
 RUN git clone https://github.com/kyrikakis/tappas.git
 
@@ -59,6 +58,8 @@ ENTRYPOINT ["/ros_entrypoint.sh"]
 
 RUN mkdir -p /workspaces/hailo-rpi-ros2/
 COPY . /workspaces/hailo-rpi-ros2/
+
+RUN /workspaces/hailo-rpi-ros2/install.sh
 
 USER $USERNAME
 # terminal colors with xterm
