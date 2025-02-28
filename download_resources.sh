@@ -23,8 +23,8 @@ H8_HEFS=(
   "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8m.hef"
 )
 
-echo "Downloading HAILO8L models..."
-for url in "${H8L_HEFS[@]}"; do
+echo "Downloading HAILO8 models..."
+for url in "${H8_HEFS[@]}"; do
   download_model "$url" &
 done
 
