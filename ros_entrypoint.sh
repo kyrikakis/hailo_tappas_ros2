@@ -3,7 +3,7 @@ set -e
 
 id -u ros &>/dev/null || adduser --quiet --disabled-password --gecos '' --uid ${UID:=1200} --uid ${GID:=1200} ros
 
-getent group i2c || groupadd -g 998 i2c
+getent group i2c || groupadd -g 990 i2c
 usermod -aG i2c ros
 
 # setup ros environment

@@ -32,7 +32,7 @@ RUN apt-get install -y rpicam-apps hailo-tappas-core-3.28.2
 # Excludes hailort as it fails to install during build stage
 
 # Dependencies for hailo-rpi5-examples
-RUN apt-get install -y python3-venv meson
+RUN apt-get install -y python3-venv meson python3-picamera2
 
 # Download Raspberry Pi examples
 RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
@@ -46,6 +46,9 @@ RUN git clone https://github.com/kyrikakis/tappas.git
 RUN wget https://s3.ap-northeast-1.wasabisys.com/download-raw/dpkg/ros2-desktop/debian/bookworm/ros-jazzy-desktop-0.3.2_20240525_arm64.deb && \
     apt install -y ./ros-jazzy-desktop-0.3.2_20240525_arm64.deb && \
     pip install --break-system-packages vcstool psutil colcon-common-extensions
+
+# Supervisor
+RUN apt-get install -y supervisor vim
 
 RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
@@ -61,4 +64,4 @@ USER $USERNAME
 # terminal colors with xterm
 ENV TERM xterm
 WORKDIR /workspaces/hailo-rpi-ros2
-CMD [ "sleep", "infinity" ]
+CMD ["/bin/sh", "-c", "bash"]
