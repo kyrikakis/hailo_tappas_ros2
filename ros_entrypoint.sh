@@ -11,5 +11,6 @@ export ROS_DISTRO=jazzy
 export ROS_DOMAIN_ID=20
 source "/opt/ros/$ROS_DISTRO/setup.bash"
 
-/usr/bin/supervisord
+source /workspaces/hailo-rpi-ros2/setup_env.sh
+
 exec "$@"

@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y python3 ffmpeg x11-utils python3-dev py
 RUN apt-get install -y supervisor vim
 
 # Dependencies for rpicam-apps-hailo-postprocess
-RUN apt-get update && apt-get install -y rpicam-apps hailo-tappas-core hailo-all
+RUN apt-get update && apt-get install -y rpicam-apps hailo-tappas-core=3.31.0+1-1 hailo-all=4.20.0
 # Excludes hailort as it fails to install during build stage
 
 # Dependencies for hailo-rpi5-examples
@@ -45,12 +45,14 @@ RUN apt-get update && apt-get install -y python3-venv meson python3-picamera2
 RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
 
 # Download Hailo examples
-RUN git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
+RUN cd /workspaces && git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
 
-# RUN git clone https://github.com/kyrikakis/tappas.git
+# Download app infra fork for any further development
+RUN cd /workspaces && git clone https://github.com/kyrikakis/hailo-apps-infra.git
 
 RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+RUN echo "source /workspaces/hailo-rpi-ros2/setup_env.sh" >> ~/.bashrc
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
