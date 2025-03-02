@@ -15,3 +15,4 @@ python3 src/ros2_node.py --use-frame --input rpi
 
 ### Acknowledgements
 https://github.com/hailo-ai/hailo-rpi5-examples
+https://github.com/canonical/pi-ai-kit-ubuntu

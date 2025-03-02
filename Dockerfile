@@ -50,7 +50,10 @@ RUN mkdir /workspaces
 RUN cd /workspaces && git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
 
 # Download app infra fork for any further development
-RUN cd /workspaces && git clone https://github.com/kyrikakis/hailo-apps-infra.git
+RUN cd /workspaces && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
+    cd hailo-apps-infra && sed 's|https://github.com/kyrikakis/hailo-apps-infra.git|git@github.com:kyrikakis/hailo-apps-infra.git|g' \
+    .git/config > .git/config.tmp && \
+    mv .git/config.tmp .git/config
 
 RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
