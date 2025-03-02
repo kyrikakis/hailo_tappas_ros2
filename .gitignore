@@ -2,3 +2,4 @@ venv_hailo_rpi5_examples/
 hailort.log
 resources/
 gstshark*
+core

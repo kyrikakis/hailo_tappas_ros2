@@ -44,6 +44,8 @@ RUN apt-get update && apt-get install -y python3-venv meson python3-picamera2
 # Download Raspberry Pi examples
 RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
 
+RUN mkdir /workspaces
+
 # Download Hailo examples
 RUN cd /workspaces && git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
 
