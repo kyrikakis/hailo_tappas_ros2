@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 import hailo
-from hailo_apps_infra.detection_pipeline import GStreamerDetectionApp
+from hailo_apps_infra.face_detection_pipeline import GStreamerFaceDetectionApp
 from gi.repository import Gst
 import cv2
 import datetime
@@ -22,7 +22,7 @@ class HailoDetection(Node, app_callback_class):
 
         self.image_publisher_compressed = self.create_publisher(CompressedImage, '/camera/image_raw/compressed', 10)
         self.image_publisher_ = self.create_publisher(Image, '/camera/image_raw', 10)
-        app = GStreamerDetectionApp(self.app_callback, self)
+        app = GStreamerFaceDetectionApp(self.app_callback, self)
         app.run()
     
     def new_function(self):  # New function example
