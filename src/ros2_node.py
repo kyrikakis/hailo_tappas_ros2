@@ -4,7 +4,6 @@ import hailo
 from hailo_apps_infra.face_detection_pipeline import GStreamerFaceDetectionApp
 from gi.repository import Gst
 import cv2
-import datetime
 from std_msgs.msg import String
 from sensor_msgs.msg import Image, CompressedImage
 from hailo_apps_infra.hailo_rpi_common import (
@@ -59,16 +58,19 @@ class HailoDetection(Node, app_callback_class):
             label = detection.get_label()
             bbox = detection.get_bbox()
             confidence = detection.get_confidence()
-            # if label == "person":
             # Get track ID
             track_id = 0
+            embeddings = detection.get_objects_typed(hailo.HAILO_MATRIX)
+            if len(embeddings) == 1:
+                person_embeddings = detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
+                if len(person_embeddings) > 0:
+                    print('person: ', person_embeddings[0].get_label())
             track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
             if len(track) == 1:
                 track_id = track[0].get_id()
             string_to_print += (f"Detection: ID: {track_id} Label: {label} Confidence: {confidence:.2f}\n")
             detection_count += 1
         if user_data.use_frame:
-            print('frame')
             # Note: using imshow will not work here, as the callback function is not running in the main thread
             # Let's print the detection count to the frame
             cv2.putText(frame, f"Detections: {detection_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
