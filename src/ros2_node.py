@@ -12,6 +12,7 @@ from hailo_apps_infra.hailo_rpi_common import (
     app_callback_class,
 )
 import face_gallery
+import debugpy
 
 class HailoDetection(Node, app_callback_class):
     def __init__(self):
@@ -23,8 +24,9 @@ class HailoDetection(Node, app_callback_class):
         self.image_publisher_compressed = self.create_publisher(CompressedImage, '/camera/image_raw/compressed', 10)
         self.image_publisher_ = self.create_publisher(Image, '/camera/image_raw', 10)
 
-        self.gallery = face_gallery.Gallery(similarity_thr=0.2, queue_size=100)
+        self.gallery = face_gallery.Gallery(similarity_thr=0.4, queue_size=100)
         self.gallery.load_local_gallery_from_json('/workspaces/hailo-rpi-ros2/venv_hailo_rpi5_examples/lib/python3.11/site-packages/resources/face_recognition_local_gallery.json')
+
         app = GStreamerFaceDetectionApp(self.app_callback, self)
         app.run()
     
@@ -33,6 +35,7 @@ class HailoDetection(Node, app_callback_class):
     
     # This is the callback function that will be called when data is available from the pipeline
     def app_callback(self, pad, info, user_data):
+        debugpy.debug_this_thread()
         # Get the GstBuffer from the probe info
         buffer = info.get_buffer()
         # Check if the buffer is valid
@@ -66,8 +69,8 @@ class HailoDetection(Node, app_callback_class):
             track_id = 0
             embeddings = detection.get_objects_typed(hailo.HAILO_MATRIX)
             if len(embeddings) == 1:
-                # detections = [detection]
-                # self.gallery.update(detections)
+                detections = [detection]
+                self.gallery.update(detections)
                 person_embeddings = detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
                 if len(person_embeddings) > 0:
                     print('person: ', person_embeddings[0].get_label())

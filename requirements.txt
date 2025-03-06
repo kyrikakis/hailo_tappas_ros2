@@ -1,4 +1,5 @@
 numpy<2.0.0
 setproctitle
 opencv-python
+debugpy
 git+https://github.com/kyrikakis/hailo-apps-infra.git
