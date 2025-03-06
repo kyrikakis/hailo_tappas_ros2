@@ -17,3 +17,4 @@ services:
     ipc: host
     tty: true
     stdin_open: true
+    restart: always
