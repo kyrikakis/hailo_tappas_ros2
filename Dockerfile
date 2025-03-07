@@ -46,34 +46,34 @@ RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
 
 RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
-RUN echo "source /workspaces/hailo-rpi-ros2/setup_env.sh" >> ~/.bashrc
+RUN echo "source /workspaces/src/hailo-rpi-ros2/setup_env.sh" >> ~/.bashrc
 
-RUN mkdir -p /workspaces/hailo-rpi-ros2/
-COPY . /workspaces/hailo-rpi-ros2/
+RUN mkdir -p /workspaces/src/hailo-rpi-ros2/
+COPY . /workspaces/src/hailo-rpi-ros2/
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
 ENTRYPOINT ["/ros_entrypoint.sh"]
 
 # Download Hailo examples
-RUN cd /workspaces && git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
+RUN cd /workspaces/src && git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
 
 # Download hailo tappas
-RUN cd /workspaces && git clone https://github.com/kyrikakis/tappas.git && \
+RUN cd /workspaces/src && git clone https://github.com/kyrikakis/tappas.git && \
     cd tappas && sed 's|https://github.com/kyrikakis/tappas.git|git@github.com:kyrikakis/tappas.git|g' \
     .git/config > .git/config.tmp && \
     mv .git/config.tmp .git/config
 
 # Download app infra fork for any further development
-RUN cd /workspaces && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
+RUN cd /workspaces/src && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
     cd hailo-apps-infra && sed 's|https://github.com/kyrikakis/hailo-apps-infra.git|git@github.com:kyrikakis/hailo-apps-infra.git|g' \
     .git/config > .git/config.tmp && \
     mv .git/config.tmp .git/config
 
-RUN cd /workspaces/hailo-rpi-ros2 && ./install.sh
+RUN cd /workspaces/src/hailo-rpi-ros2 && ./install.sh
 
 USER $USERNAME
 # terminal colors with xterm
 ENV TERM xterm
-WORKDIR /workspaces/hailo-rpi-ros2
+WORKDIR /workspaces/src/hailo-rpi-ros2
 CMD ["/bin/sh", "-c", "bash"]

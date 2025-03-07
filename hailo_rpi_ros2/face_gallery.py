@@ -227,7 +227,7 @@ if __name__ == "__main__":
     # gallery.init_local_gallery_file("gallery.json")
 
     # Load local gallery from JSON (if needed)
-    gallery.load_local_gallery_from_json("/workspaces/hailo-rpi-ros2/src/test_gallery.json")#/workspaces/hailo-rpi-ros2/venv_hailo_rpi5_examples/lib/python3.11/site-packages/resources/face_recognition_local_gallery.json")
+    gallery.load_local_gallery_from_json("/workspaces/src/hailo-rpi-ros2/hailo_rpi_ros2/test_gallery.json")
 
     # Example HailoDetection and HailoMatrix (replace with your actual data)
     bbox1 = hailo.HailoBBox(0, 0, 10, 10)
