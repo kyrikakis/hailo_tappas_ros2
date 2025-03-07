@@ -10,7 +10,6 @@ usermod -aG i2c ros
 export ROS_DISTRO=jazzy
 export ROS_DOMAIN_ID=20
 source "/opt/ros/$ROS_DISTRO/setup.bash"
-
 source /workspaces/hailo-rpi-ros2/setup_env.sh
-python3 /workspaces/hailo-rpi-ros2/src/ros2_node.py --use-frame --input rpi
+/usr/bin/supervisord
 exec "$@"

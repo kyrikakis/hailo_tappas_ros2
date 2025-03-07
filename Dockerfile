@@ -48,12 +48,12 @@ RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
 RUN echo "source /workspaces/hailo-rpi-ros2/setup_env.sh" >> ~/.bashrc
 
+RUN mkdir -p /workspaces/hailo-rpi-ros2/
+COPY . /workspaces/hailo-rpi-ros2/
+
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
 ENTRYPOINT ["/ros_entrypoint.sh"]
-
-RUN mkdir -p /workspaces/hailo-rpi-ros2/
-COPY . /workspaces/hailo-rpi-ros2/
 
 # Download Hailo examples
 RUN cd /workspaces && git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
