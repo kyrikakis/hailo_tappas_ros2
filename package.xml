@@ -9,6 +9,11 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>rosidl_default_generators</build_depend>
 
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>rosidl_runtime_py</exec_depend>

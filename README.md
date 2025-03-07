@@ -10,7 +10,7 @@ OR just open it with VSCode using the Dev Containers extension
 ## Run
 ```
 docker compose exec hailo-rpi-service /bin/bash
-python3 src/ros2_node.py --use-frame --input rpi
+python3 hailo_rpi_ros2/ros2_node.py --use-frame --input rpi
 ```
 
 ### Acknowledgements

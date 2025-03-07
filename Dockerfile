@@ -55,22 +55,22 @@ COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
 ENTRYPOINT ["/ros_entrypoint.sh"]
 
-# Download Hailo examples
-RUN cd /workspaces/src && git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
+# # Download Hailo examples
+# RUN cd / && git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
 
-# Download hailo tappas
-RUN cd /workspaces/src && git clone https://github.com/kyrikakis/tappas.git && \
-    cd tappas && sed 's|https://github.com/kyrikakis/tappas.git|git@github.com:kyrikakis/tappas.git|g' \
-    .git/config > .git/config.tmp && \
-    mv .git/config.tmp .git/config
+# # Download hailo tappas
+# RUN cd / && git clone https://github.com/kyrikakis/tappas.git && \
+#     cd tappas && sed 's|https://github.com/kyrikakis/tappas.git|git@github.com:kyrikakis/tappas.git|g' \
+#     .git/config > .git/config.tmp && \
+#     mv .git/config.tmp .git/config
 
 # Download app infra fork for any further development
-RUN cd /workspaces/src && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
+RUN cd / && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
     cd hailo-apps-infra && sed 's|https://github.com/kyrikakis/hailo-apps-infra.git|git@github.com:kyrikakis/hailo-apps-infra.git|g' \
     .git/config > .git/config.tmp && \
     mv .git/config.tmp .git/config
 
-RUN cd /workspaces/src/hailo-rpi-ros2 && ./install.sh
+RUN 
 
 USER $USERNAME
 # terminal colors with xterm

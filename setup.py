@@ -1,14 +1,7 @@
 from setuptools import setup
-import subprocess
+import os
 
 package_name = 'hailo_rpi_ros2'
-
-# Execute install.sh
-try:
-    subprocess.run(['bash', 'install.sh'], check=True)
-except subprocess.CalledProcessError as e:
-    print(f"Error running install.sh: {e}")
-    raise RuntimeError("install.sh failed. Installation aborted.") #Raise the exception.
 
 setup(
     name=package_name,
@@ -18,6 +11,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name), ['package.xml']),
         ('share/' + package_name + '/srv', ['srv/AddPerson.srv'])
     ],
     install_requires=['setuptools'],
@@ -33,10 +27,3 @@ setup(
         ],
     },
 )
-
-# Post-install script
-try:
-    subprocess.run(['bash', 'post_install.sh'], check=True)
-except subprocess.CalledProcessError as e:
-    print(f"Error running post_install.sh: {e}")
-    # Optionally, raise an exception to stop the installation
