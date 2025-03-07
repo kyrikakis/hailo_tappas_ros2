@@ -23,7 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'hailo_rpi_ros2 = hailo_rpi_ros2_pkg.ros2_node:main',
+            'ros2_node = hailo_rpi_ros2.ros2_node:main',
         ],
     },
 )
