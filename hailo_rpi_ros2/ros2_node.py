@@ -13,6 +13,7 @@ from hailo_apps_infra.hailo_rpi_common import (
 )
 import face_gallery
 import debugpy
+from hailo_rpi_ros2.srv import AddPerson
 
 class HailoDetection(Node, app_callback_class):
     def __init__(self):
@@ -24,12 +25,17 @@ class HailoDetection(Node, app_callback_class):
         self.image_publisher_compressed = self.create_publisher(CompressedImage, '/camera/image_raw/compressed', 10)
         self.image_publisher_ = self.create_publisher(Image, '/camera/image_raw', 10)
 
+        self.srv = self.create_service(AddPerson, 'add_person', self.add_person_callback)
+
         self.gallery = face_gallery.Gallery(similarity_thr=0.4, queue_size=100)
         self.gallery.load_local_gallery_from_json('/workspaces/src/hailo-rpi-ros2/venv_hailo_rpi5_examples/lib/python3.11/site-packages/resources/face_recognition_local_gallery.json')
 
         app = GStreamerFaceDetectionApp(self.app_callback, self)
         app.run()
     
+    def add_person_callback(self, request, response):
+        self.get_logger().info(f'Incoming request: Add person {request.name}')
+        
     def new_function(self):  # New function example
         return "The meaning of life is: "
     

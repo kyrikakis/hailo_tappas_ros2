@@ -16,9 +16,11 @@
   
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
   <exec_depend>rosidl_runtime_py</exec_depend>
 
   <member_of_group>rosidl_interface_packages</member_of_group>
+  <member_of_group>rosidl_interface_files</member_of_group>
 
   <export>
     <build_type>ament_python</build_type>

@@ -70,8 +70,6 @@ RUN cd / && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
     .git/config > .git/config.tmp && \
     mv .git/config.tmp .git/config
 
-RUN 
-
 USER $USERNAME
 # terminal colors with xterm
 ENV TERM xterm
