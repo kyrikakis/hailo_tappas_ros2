@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(hailo-rpi-ros2)
+project(hailo_rpi_ros2)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclpy REQUIRED)

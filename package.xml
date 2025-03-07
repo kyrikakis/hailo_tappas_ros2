@@ -1,5 +1,5 @@
 <package format="3">
-  <name>hailo-rpi-ros2</name>
+  <name>hailo_rpi_ros2</name>
   <version>0.0.1</version>
   <description>ROS 2 package for Hailo RPi</description>
   <maintainer email="kirikakis@gmail.com">Stefanos Kyrikakis</maintainer>
