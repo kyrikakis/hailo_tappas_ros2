@@ -1,7 +1,5 @@
-venv_hailo_rpi5_examples/
 hailort.log
 resources/
 gstshark*
 core
-src/__pycache__/
-hailo_rpi_ros2/__pycache__/
+hailo_rpi_ros2/hailo_rpi_ros2/__pycache__/

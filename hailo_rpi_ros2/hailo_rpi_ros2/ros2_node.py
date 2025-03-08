@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 import hailo
@@ -11,9 +13,11 @@ from hailo_apps_infra.hailo_rpi_common import (
     get_numpy_from_buffer,
     app_callback_class,
 )
-import face_gallery
+from hailo_rpi_ros2 import (
+    face_gallery
+)
 import debugpy
-from hailo_rpi_ros2.srv import AddPerson
+from hailo_rpi_ros2_interfaces.srv import AddPerson
 
 class HailoDetection(Node, app_callback_class):
     def __init__(self):
