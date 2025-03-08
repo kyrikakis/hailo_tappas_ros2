@@ -18,7 +18,7 @@ setup(
     maintainer_email='kirikakis@gmail.com',
     description='ROS 2 package for Hailo RPi',
     license='MIT License',
-    tests_require=['pytest'],
+    tests_require=['pytest', 'pydocstyle'],
     entry_points={
         'console_scripts': [
             'ros2_node = hailo_rpi_ros2.ros2_node:main',
