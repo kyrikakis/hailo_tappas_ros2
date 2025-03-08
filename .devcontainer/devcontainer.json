@@ -2,7 +2,7 @@
     "name": "hailo-rpi-ros2",
     "dockerComposeFile": "../docker-compose.yaml",
     "service": "hailo-rpi-service",
-    "workspaceFolder": "/workspaces/src/hailo-rpi-ros2",
+    "workspaceFolder": "/workspaces/src/hailo_rpi_ros2",
     "overrideCommand": false,
     // "updateContentCommand": "bash .devcontainer/post_creation_script.sh",
     // "postCreateCommand": [

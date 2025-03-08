@@ -46,10 +46,16 @@ RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
 
 RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
-RUN echo "source /workspaces/src/hailo-rpi-ros2/setup_env.sh" >> ~/.bashrc
+# RUN echo "source /workspaces/src/hailo-rpi-ros2/setup_env.sh" >> ~/.bashrc
 
-RUN mkdir -p /workspaces/src/hailo-rpi-ros2/
-COPY . /workspaces/src/hailo-rpi-ros2/
+# packages em and empy build under the same namespace: https://github.com/ros/genmsg/issues/63
+RUN pip uninstall em --break-system-packages && pip install empy==3.3.4 --break-system-packages
+
+RUN mkdir -p /workspaces/src/hailo_rpi_ros2/
+COPY . /workspaces/src/hailo_rpi_ros2/
+
+# packages em and empy build under the same namespace: https://github.com/ros/genmsg/issues/63
+RUN "source /opt/ros/$ROS_DISTRO/setup.bash" && cd /workspaces && colcon build --symlink-install
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
