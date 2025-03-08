@@ -28,7 +28,7 @@ class HailoDetection(Node, app_callback_class):
         self.srv = self.create_service(AddPerson, 'add_person', self.add_person_callback)
 
         self.gallery = face_gallery.Gallery(similarity_thr=0.4, queue_size=100)
-        self.gallery.load_local_gallery_from_json('/workspaces/src/hailo-rpi-ros2/venv_hailo_rpi5_examples/lib/python3.11/site-packages/resources/face_recognition_local_gallery.json')
+        self.gallery.load_local_gallery_from_json('/usr/local/lib/python3.11/dist-packages/resources/face_recognition_local_gallery.json')
 
         app = GStreamerFaceDetectionApp(self.app_callback, self)
         app.run()

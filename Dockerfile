@@ -44,9 +44,10 @@ RUN apt-get update && apt-get install -y python3-venv meson python3-picamera2 su
 # Download Raspberry Pi examples
 RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
 
-RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc
-RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
-# RUN echo "source /workspaces/src/hailo-rpi-ros2/setup_env.sh" >> ~/.bashrc
+RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc && \
+    echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc && \
+    echo "source /workspaces/install/setup.bash" >> ~/.bashrc && \
+    echo "export TAPPAS_POST_PROC_DIR=$(pkg-config --variable=tappas_postproc_lib_dir hailo-tappas-core)" >> ~/.bashrc
 
 # packages em and empy build under the same namespace: https://github.com/ros/genmsg/issues/63
 RUN pip uninstall em --break-system-packages && pip install empy==3.3.4 --break-system-packages
@@ -54,8 +55,9 @@ RUN pip uninstall em --break-system-packages && pip install empy==3.3.4 --break-
 RUN mkdir -p /workspaces/src/hailo_rpi_ros2/
 COPY . /workspaces/src/hailo_rpi_ros2/
 
-# packages em and empy build under the same namespace: https://github.com/ros/genmsg/issues/63
-RUN "source /opt/ros/$ROS_DISTRO/setup.bash" && cd /workspaces && colcon build --symlink-install
+# Install requirements and build
+RUN source /opt/ros/jazzy/setup.bash && cd /workspaces && colcon build --symlink-install && \
+    pip install -r src/hailo_rpi_ros2/requirements.txt --break-system-packages
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
