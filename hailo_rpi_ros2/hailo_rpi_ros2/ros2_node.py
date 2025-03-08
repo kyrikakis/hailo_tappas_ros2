@@ -1,4 +1,17 @@
-#!/usr/bin/env python3
+# Copyright 2025 Stefanos Kyrikakis
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# !/usr/bin/env python3
 
 import rclpy
 from rclpy.node import Node
@@ -6,7 +19,6 @@ import hailo
 from hailo_apps_infra.face_detection_pipeline import GStreamerFaceDetectionApp
 from gi.repository import Gst
 import cv2
-from std_msgs.msg import String
 from sensor_msgs.msg import Image, CompressedImage
 from hailo_apps_infra.hailo_rpi_common import (
     get_caps_from_pad,
@@ -19,6 +31,7 @@ from hailo_rpi_ros2 import (
 import debugpy
 from hailo_rpi_ros2_interfaces.srv import AddPerson
 
+
 class HailoDetection(Node, app_callback_class):
     def __init__(self):
         Node.__init__(self, 'hailo_detection')
@@ -26,23 +39,27 @@ class HailoDetection(Node, app_callback_class):
 
         self.new_variable = 42  # New variable example
 
-        self.image_publisher_compressed = self.create_publisher(CompressedImage, '/camera/image_raw/compressed', 10)
+        self.image_publisher_compressed = self.create_publisher(
+            CompressedImage, '/camera/image_raw/compressed', 10)
         self.image_publisher_ = self.create_publisher(Image, '/camera/image_raw', 10)
 
         self.srv = self.create_service(AddPerson, 'add_person', self.add_person_callback)
 
         self.gallery = face_gallery.Gallery(similarity_thr=0.4, queue_size=100)
-        self.gallery.load_local_gallery_from_json('/usr/local/lib/python3.11/dist-packages/resources/face_recognition_local_gallery.json')
+        self.gallery.load_local_gallery_from_json(
+            '/usr/local/lib/python3.11/dist-packages/resources/' +
+            'face_recognition_local_gallery.json'
+        )
 
         app = GStreamerFaceDetectionApp(self.app_callback, self)
         app.run()
-    
+
     def add_person_callback(self, request, response):
         self.get_logger().info(f'Incoming request: Add person {request.name}')
-        
+
     def new_function(self):  # New function example
         return "The meaning of life is: "
-    
+
     # This is the callback function that will be called when data is available from the pipeline
     def app_callback(self, pad, info, user_data):
         debugpy.debug_this_thread()
@@ -73,7 +90,6 @@ class HailoDetection(Node, app_callback_class):
         detection_count = 0
         for detection in detections:
             label = detection.get_label()
-            bbox = detection.get_bbox()
             confidence = detection.get_confidence()
             # Get track ID
             track_id = 0
@@ -87,15 +103,18 @@ class HailoDetection(Node, app_callback_class):
             track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
             if len(track) == 1:
                 track_id = track[0].get_id()
-            string_to_print += (f"Detection: ID: {track_id} Label: {label} Confidence: {confidence:.2f}\n")
+            string_to_print += (
+                f"Detection: ID: {track_id} Label: {label} Confidence: {confidence:.2f}\n")
             detection_count += 1
         if user_data.use_frame:
-            # Note: using imshow will not work here, as the callback function is not running in the main thread
-            # Let's print the detection count to the frame
-            cv2.putText(frame, f"Detections: {detection_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(frame, f"Detections: {detection_count}",
+                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             # Example of how to use the new_variable and new_function from the user_data
             # Let's print the new_variable and the result of the new_function to the frame
-            cv2.putText(frame, f"{user_data.new_function()} {user_data.new_variable}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(
+                frame, f"{user_data.new_function()} {user_data.new_variable}", (10, 60),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
+                2)
             # Convert the frame to BGR
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             user_data.set_frame(frame)
@@ -112,6 +131,7 @@ class HailoDetection(Node, app_callback_class):
         print(string_to_print)
         return Gst.PadProbeReturn.OK
 
+
 def main(args=None):
     rclpy.init(args=args)
 
@@ -123,6 +143,7 @@ def main(args=None):
     # when the garbage collector destroys the node object)
     detection.destroy_node()
     rclpy.shutdown()
+
 
 # Main program logic follows:
 if __name__ == '__main__':

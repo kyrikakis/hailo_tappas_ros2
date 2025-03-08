@@ -7,6 +7,12 @@ docker compose build
 docker compose up -d hailo-rpi-service
 ```
 OR just open it with VSCode using the Dev Containers extension
+
+## Test
+```
+colcon test --event-handlers console_direct+
+```
+
 ## Run
 ```
 docker compose exec hailo-rpi-service /bin/bash

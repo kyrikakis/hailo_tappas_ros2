@@ -3,3 +3,4 @@ resources/
 gstshark*
 core
 hailo_rpi_ros2/hailo_rpi_ros2/__pycache__/
+hailo_rpi_ros2/test/__pycache__/

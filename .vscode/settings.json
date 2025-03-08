@@ -8,5 +8,11 @@
         "/workspaces/install/hailo_rpi_ros2/lib/python3.11/site-packages",
         "/ros2_ws/jazzy/lib/python3.11/dist-packages",
         "/opt/ros/jazzy/lib/python3.11/site-packages"
-    ]
+    ],
+    "autopep8.args": [
+        "--max-line-length",
+        "99",
+        "--experimental"
+    ],
+    "cmake.ignoreCMakeListsMissing": true,
 }
