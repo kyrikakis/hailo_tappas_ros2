@@ -1,5 +1,4 @@
 hailort.log
-resources/
 gstshark*
 core
 hailo_rpi_ros2/hailo_rpi_ros2/__pycache__/

@@ -15,6 +15,7 @@
 
 import rclpy
 from rclpy.node import Node
+from threading import Thread
 import hailo
 from hailo_apps_infra.face_detection_pipeline import GStreamerFaceDetectionApp
 from gi.repository import Gst
@@ -43,7 +44,7 @@ class HailoDetection(Node, app_callback_class):
             CompressedImage, '/camera/image_raw/compressed', 10)
         self.image_publisher_ = self.create_publisher(Image, '/camera/image_raw', 10)
 
-        self.srv = self.create_service(AddPerson, 'add_person', self.add_person_callback)
+        self.srv = self.create_service(AddPerson, '~/add_person', self.add_person_callback)
 
         self.gallery = face_gallery.Gallery(similarity_thr=0.4, queue_size=100)
         self.gallery.load_local_gallery_from_json(
@@ -52,10 +53,15 @@ class HailoDetection(Node, app_callback_class):
         )
 
         app = GStreamerFaceDetectionApp(self.app_callback, self)
-        app.run()
 
-    def add_person_callback(self, request, response):
+        self.detection_thread = Thread(target = app.run)
+        self.detection_thread.start()
+
+    def add_person_callback(self, request: AddPerson.Request, response: AddPerson.Response):
         self.get_logger().info(f'Incoming request: Add person {request.name}')
+        response.success = True
+        response.message = "Person added"
+        return response
 
     def new_function(self):  # New function example
         return "The meaning of life is: "
@@ -141,6 +147,7 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
+    detection.detection_thread.join()
     detection.destroy_node()
     rclpy.shutdown()
 
