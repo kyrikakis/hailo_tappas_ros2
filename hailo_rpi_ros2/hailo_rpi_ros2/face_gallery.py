@@ -50,7 +50,7 @@ def gallery_one_dim_dot_product(array1, array2):
 
 # Gallery class
 class Gallery:
-    def __init__(self, similarity_thr=0.15, queue_size=100):
+    def __init__(self, similarity_thr=0.40, queue_size=100):
         self.m_embeddings: List[List[np.ndarray]] = []
         self.tracking_id_to_global_id: Dict[int, int] = {}
         self.m_embedding_names: List[str] = []
@@ -67,6 +67,7 @@ class Gallery:
         for embedding in embeddings_queue:
             thr = gallery_one_dim_dot_product(embedding, new_embedding)
             max_thr = max(thr, max_thr)
+        print(f"Similarity: {max_thr}, Distance: {1.0 - max_thr}")  # Debug
         return 1.0 - max_thr
 
     def get_embeddings_distances(self, matrix: np.ndarray) -> np.ndarray:
@@ -178,6 +179,7 @@ class Gallery:
 
     def get_closest_global_id(self, matrix: np.ndarray) -> Tuple[int, float]:
         distances = self.get_embeddings_distances(matrix)
+        print(f"Distances: {distances}")  # Debug
         closest_global_id = np.argmin(distances)
         return closest_global_id + 1, distances[closest_global_id]
 

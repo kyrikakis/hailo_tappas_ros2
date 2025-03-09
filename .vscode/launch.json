@@ -9,6 +9,15 @@
             "console": "integratedTerminal",
             "args": ["--use-frame", "--input", "rpi"],
             "justMyCode": false
+        },
+        {
+            "name": "Debug pytest",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-sv"],
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }
