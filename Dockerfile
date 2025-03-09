@@ -54,7 +54,7 @@ RUN pip uninstall em --break-system-packages && pip install empy==3.3.4 --break-
 
 RUN mkdir -p /workspaces/src/hailo_rpi_ros2/
 COPY . /workspaces/src/hailo_rpi_ros2/
-RUN cp /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
+COPY /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
 
 # Install requirements and build
 RUN source /opt/ros/jazzy/setup.bash && cd /workspaces && colcon build --symlink-install && \
