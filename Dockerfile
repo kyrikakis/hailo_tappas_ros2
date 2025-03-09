@@ -82,5 +82,5 @@ RUN cd / && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
 USER $USERNAME
 # terminal colors with xterm
 ENV TERM xterm
-WORKDIR /workspaces/src/hailo-rpi-ros2
+WORKDIR /workspaces/src/hailo_rpi_ros2
 CMD ["/bin/sh", "-c", "bash"]
