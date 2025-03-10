@@ -20,5 +20,6 @@ ros2 run hailo_rpi_ros2 ros2_node --use-frame --input rpi
 ```
 
 ### Acknowledgements
-https://github.com/hailo-ai/hailo-rpi5-examples
-https://github.com/canonical/pi-ai-kit-ubuntu
+* https://github.com/hailo-ai/hailo-rpi5-examples
+* https://github.com/canonical/pi-ai-kit-ubuntu
+* https://github.com/Ar-Ray-code/rpi-bullseye-ros2
