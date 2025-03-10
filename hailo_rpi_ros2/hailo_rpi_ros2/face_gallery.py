@@ -207,36 +207,22 @@ class Gallery:
             self._update_embeddings_and_add_id_to_object(
                 new_embedding, detection, self.tracking_id_to_global_id[track_id], track_id)
             if self.m_load_local_embeddings:
-                self.h_andle_local_embedding(
+                self._handle_local_embedding(
                     detection, self.tracking_id_to_global_id[track_id])
             return
         if new_embedding is None:
             # No embedding exists in this detection object, continue to next detection
             return
-        if not self.m_embeddings:
-            # Gallery is empty, adding new global id
-            global_id = self.create_new_global_id()
-            self._save_embedding_to_json_file(new_embedding, global_id)
-            self._update_embeddings_and_add_id_to_object(
-                new_embedding, detection, global_id, track_id)
-            return
         # Get closest global id by distance between embeddings
-        closest_global_id, min_distance = self.get_closest_global_id(
+        closest_global_id, min_distance = self._get_closest_global_id(
             new_embedding)
-        if min_distance > self.m_similarity_thr:
-            # if smallest distance is bigger than threshold and local gallery is not loaded
-            # -> create new global ID
-            if not self.m_load_local_embeddings:
-                global_id = self.create_new_global_id()
-                self._save_embedding_to_json_file(new_embedding, global_id)
-                self._update_embeddings_and_add_id_to_object(
-                    new_embedding, detection, global_id, track_id)
-        else:
+        if min_distance < self.m_similarity_thr:
             # Close embedding found, update global id embeddings
             self._update_embeddings_and_add_id_to_object(
                 new_embedding, detection, closest_global_id, track_id)
             if self.m_load_local_embeddings:
                 self._handle_local_embedding(detection, closest_global_id)
+
 
     def load_local_gallery_from_json(self, file_path: str):
         if not os.path.exists(file_path):
@@ -262,6 +248,34 @@ class Gallery:
             new_embedding = self._get_embedding_matrix(detection)
             self._new_embedding_to_global_id(
                 new_embedding, detection, track_id)
+    
+    def add_item_to_local_gallery(self, detection: hailo.HailoDetection):
+        track_ids = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
+        if not track_ids:
+            raise RuntimeError("no trackids found in detection")
+        track_id = track_ids[0].get_id()
+        new_embedding = self._get_embedding_matrix(detection)
+        if new_embedding is None:
+            # No embedding exists in this detection object, continue to next detection
+            return
+        if not self.m_embeddings:
+            # Gallery is empty, adding new global id
+            global_id = self.create_new_global_id()
+            self._save_embedding_to_json_file(new_embedding, global_id)
+            self._update_embeddings_and_add_id_to_object(
+                new_embedding, detection, global_id, track_id)
+            return
+        # Get closest global id by distance between embeddings
+        closest_global_id, min_distance = self.get_closest_global_id(
+            new_embedding)
+        if min_distance > self.m_similarity_thr:
+            # if smallest distance is bigger than threshold and local gallery is not loaded
+            # -> create new global ID
+            if not self.m_load_local_embeddings:
+                global_id = self.create_new_global_id()
+                self._save_embedding_to_json_file(new_embedding, global_id)
+                self._update_embeddings_and_add_id_to_object(
+                    new_embedding, detection, global_id, track_id)
 
 
 if __name__ == "__main__":

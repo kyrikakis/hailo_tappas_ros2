@@ -15,4 +15,16 @@
         "--experimental"
     ],
     "cmake.ignoreCMakeListsMissing": true,
+    "python.testing.pytestArgs": [
+        "hailo_rpi_ros2"
+    ],
+    "python.testing.unittestEnabled": true,
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./hailo_rpi_ros2",
+        "-p",
+        "test_*.py"
+    ],
 }
