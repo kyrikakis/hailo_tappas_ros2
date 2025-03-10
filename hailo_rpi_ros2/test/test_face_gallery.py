@@ -58,9 +58,9 @@ def test_gallery_initialization():
 
 def test_gallery_add_embedding():
     gallery = Gallery()
-    global_id = gallery.create_new_global_id()
+    global_id = gallery._create_new_global_id()
     matrix = np.array([1, 2, 3])
-    gallery.add_embedding(global_id, matrix)
+    gallery._add_embedding(global_id, matrix)
     assert len(gallery.m_embeddings[global_id - 1]) == 1
     assert np.array_equal(gallery.m_embeddings[global_id - 1][0], matrix)
 
@@ -77,16 +77,16 @@ def test_gallery_get_closest_global_id():
     matrix2 = generate_realistic_embedding()
     matrix3 = generate_realistic_embedding()
 
-    global_id1 = gallery.create_new_global_id()
-    gallery.add_embedding(global_id1, matrix1)
+    global_id1 = gallery._create_new_global_id()
+    gallery._add_embedding(global_id1, matrix1)
 
-    global_id2 = gallery.create_new_global_id()
-    gallery.add_embedding(global_id2, matrix2)
+    global_id2 = gallery._create_new_global_id()
+    gallery._add_embedding(global_id2, matrix2)
 
-    global_id3 = gallery.create_new_global_id()
-    gallery.add_embedding(global_id3, matrix3)
+    global_id3 = gallery._create_new_global_id()
+    gallery._add_embedding(global_id3, matrix3)
 
-    closest_id, distance = gallery.get_closest_global_id(matrix1)
+    closest_id, distance = gallery._get_closest_global_id(matrix1)
 
     assert closest_id == global_id1
 
@@ -96,6 +96,6 @@ def test_gallery_get_closest_global_id():
 
     # Test with a matrix very similar to matrix 2.
     matrix4 = matrix2 + np.random.normal(loc=0.0, scale=0.01, size=512)
-    closest_id2, distance2 = gallery.get_closest_global_id(matrix4)
+    closest_id2, distance2 = gallery._get_closest_global_id(matrix4)
     assert closest_id2 == global_id2
     assert distance2 < 0.1
