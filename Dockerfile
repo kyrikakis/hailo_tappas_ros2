@@ -54,11 +54,12 @@ RUN pip uninstall em --break-system-packages && pip install empy==3.3.4 --break-
 
 RUN mkdir -p /workspaces/src/hailo_rpi_ros2/
 COPY . /workspaces/src/hailo_rpi_ros2/
-COPY /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
+RUN cp /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
 
 # Install requirements and build
 RUN source /opt/ros/jazzy/setup.bash && cd /workspaces && colcon build --symlink-install && \
-    pip install -r src/hailo_rpi_ros2/requirements.txt --break-system-packages
+    pip install -r src/hailo_rpi_ros2/requirements.txt --break-system-packages && \
+    colcon test --event-handlers console_direct+
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
