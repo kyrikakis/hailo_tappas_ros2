@@ -10,6 +10,7 @@ OR just open it with VSCode using the Dev Containers extension
 
 ## Test
 ```
+cd /workspaces && \
 colcon test --event-handlers console_direct+
 ```
 

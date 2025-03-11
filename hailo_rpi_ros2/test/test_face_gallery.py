@@ -15,8 +15,12 @@
 
 import pytest
 import numpy as np
-from hailo_rpi_ros2.face_gallery import Gallery, gallery_one_dim_dot_product, gallery_get_xtensor
-from unittest.mock import MagicMock, call
+from hailo_rpi_ros2.face_gallery import (
+    Gallery,
+    gallery_one_dim_dot_product,
+    gallery_get_xtensor,
+)
+from unittest.mock import MagicMock
 import hailo
 import json
 import os
@@ -50,6 +54,7 @@ def test_gallery_get_xtensor():
     result = gallery_get_xtensor(matrix)
     assert np.array_equal(result, np.array([1, 2, 3]))
 
+
 # Test Gallery class
 
 
@@ -67,10 +72,6 @@ def test_gallery_add_embedding():
     gallery._add_embedding(global_id, matrix)
     assert len(gallery.m_embeddings[global_id - 1]) == 1
     assert np.array_equal(gallery.m_embeddings[global_id - 1][0], matrix)
-
-
-def generate_realistic_embedding(size=512):
-    return np.random.normal(loc=0.0, scale=0.1, size=size)
 
 
 def test_gallery_get_closest_global_id():
@@ -104,10 +105,19 @@ def test_gallery_get_closest_global_id():
     assert closest_id2 == global_id2
     assert distance2 < 0.1
 
-def test_new_embedding_to_global_id():
-    # Create a test json file
+
+# Helper function to generate realistic embeddings
+def generate_realistic_embedding(size=512):
+    return np.random.normal(loc=0.0, scale=0.1, size=size)
+
+
+# Fixture for the Gallery object and test JSON file
+@pytest.fixture
+def gallery_and_json(tmp_path):
+    # Create a test JSON file
+    np.random.seed(42)  # Set a fixed seed
     matrix1 = generate_realistic_embedding()
-    test_json_path = "test_gallery.json"
+    test_json_path = tmp_path / "test_gallery.json"
     test_data = [
         {
             "FaceRecognition": {
@@ -118,53 +128,53 @@ def test_new_embedding_to_global_id():
                             "width": 1,
                             "height": 1,
                             "features": 512,
-                            "data": matrix1.tolist()
+                            "data": matrix1.tolist(),
                         }
                     }
-                ]
+                ],
             }
         }
     ]
-    with open(test_json_path, 'w') as f:
+    with open(test_json_path, "w") as f:
         json.dump(test_data, f)
 
+    # Initialize Gallery and load the test JSON
     gallery = Gallery()
-    gallery.load_local_gallery_from_json(test_json_path) #Load the test json
+    gallery.load_local_gallery_from_json(str(test_json_path))
 
-    matrix2 = generate_realistic_embedding()
-    matrix3 = matrix1 + np.random.normal(loc=0.0, scale=0.1, size=512)
-    matrix4 = generate_realistic_embedding() + 1
+    yield gallery, test_json_path
 
-    mock_detection1 = MagicMock()
-    mock_detection2 = MagicMock()
-    mock_detection3 = MagicMock()
-    mock_detection4 = MagicMock()
+    # Clean up the test JSON file after the test
+    os.remove(test_json_path)
 
-    mock_matrix1 = MagicMock()
-    mock_matrix1.get_data.return_value = matrix1
-    mock_matrix2 = MagicMock()
-    mock_matrix2.get_data.return_value = matrix2
-    mock_matrix3 = MagicMock()
-    mock_matrix3.get_data.return_value = matrix3
-    mock_matrix4 = MagicMock()
-    mock_matrix4.get_data.return_value = matrix4
 
-    mock_unique_id1 = MagicMock()
-    mock_unique_id1.get_id.return_value = 1
-    mock_unique_id2 = MagicMock()
-    mock_unique_id2.get_id.return_value = 2
-    mock_unique_id3 = MagicMock()
-    mock_unique_id3.get_id.return_value = 3
-    mock_unique_id4 = MagicMock()
-    mock_unique_id4.get_id.return_value = 4
+# Test Case 1: Track ID already exists (and local embeddings loaded)
+def test_update_existing_track_id(gallery_and_json):
+    gallery, _ = gallery_and_json
 
-    # Case 1: Track ID already exists (and local embeddings loaded)
+    # Mock detection with existing track ID
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = generate_realistic_embedding()  # Shape (512,)
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 1
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    # Pre-populate tracking ID to global ID mapping
     gallery.tracking_id_to_global_id[1] = 1
-    mock_detection1.get_objects_typed.side_effect = [[mock_matrix1], [mock_unique_id1], []]
-    gallery._new_embedding_to_global_id(matrix3, mock_detection1, 1)
 
-     # Assert that HailoUniqueID and HailoClassification were added
-    calls = mock_detection1.add_object.call_args_list
+    # Call the public update method
+    gallery.update([mock_detection])
+
+    # Assertions
+    calls = mock_detection.add_object.call_args_list
     assert len(calls) == 2
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
     assert calls[0][0][0].get_id() == 1
@@ -173,15 +183,47 @@ def test_new_embedding_to_global_id():
     assert calls[1][0][0].get_label() == "Alon"
 
 
-    # Case 2: No embedding in detection
-    mock_detection2.get_objects_typed.return_value = []
-    gallery._new_embedding_to_global_id(None, mock_detection2, 2)
-    mock_detection2.add_object.assert_not_called()
+# Test Case 2: No embedding in detection
+def test_update_no_embedding(gallery_and_json):
+    gallery, _ = gallery_and_json
 
-    # Case 3: Similar embedding found (and local embeddings loaded)
-    mock_detection3.get_objects_typed.side_effect = [[mock_matrix3], [mock_unique_id3], []]
-    gallery._new_embedding_to_global_id(matrix3, mock_detection3, 3)
-    calls = mock_detection3.add_object.call_args_list
+    # Mock detection with no embedding
+    mock_detection = MagicMock()
+    mock_detection.get_objects_typed.return_value = []  # No embedding or unique ID
+
+    # Call the public update method
+    gallery.update([mock_detection])
+
+    # Assertions
+    mock_detection.add_object.assert_not_called()
+
+
+# Test Case 3: Similar embedding found (and local embeddings loaded)
+def test_update_similar_embedding(gallery_and_json):
+    gallery, _ = gallery_and_json
+
+    # Mock detection with similar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = gallery.m_embeddings[0][0] + np.random.normal(
+        loc=0.0, scale=0.01, size=512
+    )  # Shape (512,)
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 3
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    # Call the public update method
+    gallery.update([mock_detection])
+
+    # Assertions
+    calls = mock_detection.add_object.call_args_list
     assert len(calls) == 2
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
     assert calls[0][0][0].get_id() == 1
@@ -190,10 +232,31 @@ def test_new_embedding_to_global_id():
     assert calls[1][0][0].get_label() == "Alon"
     assert gallery.tracking_id_to_global_id[3] == 1
 
-    # Case 4: Dissimilar embedding found
-    mock_detection4.get_objects_typed.side_effect = [[mock_matrix4], [mock_unique_id4], []]
-    gallery._new_embedding_to_global_id(matrix4, mock_detection4, 4)
-    mock_detection4.add_object.assert_not_called()
-    assert 4 not in gallery.tracking_id_to_global_id
 
-    os.remove(test_json_path) #Clean up the test json file.
+# Test Case 4: Dissimilar embedding found
+def test_update_dissimilar_embedding(gallery_and_json):
+    gallery, _ = gallery_and_json
+
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = (
+        generate_realistic_embedding() + 1
+    )  # Shape (512,)
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 4
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    # Call the public update method
+    gallery.update([mock_detection])
+
+    # Assertions
+    mock_detection.add_object.assert_not_called()
+    assert 4 not in gallery.tracking_id_to_global_id
