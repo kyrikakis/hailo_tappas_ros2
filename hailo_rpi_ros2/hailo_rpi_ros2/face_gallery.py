@@ -70,9 +70,10 @@ class Gallery:
         return 1.0 - max_thr
 
     def _get_embeddings_distances(self, matrix: np.ndarray) -> np.ndarray:
-        distances = [self._get_distance(embeddings_queue, matrix)
-                     for embeddings_queue
-                     in self.m_embeddings]
+        distances = [
+            self._get_distance(embeddings_queue, matrix)
+            for embeddings_queue in self.m_embeddings
+        ]
         return np.array(distances)
 
     def _init_local_gallery_file(self, file_path: str):
@@ -88,14 +89,14 @@ class Gallery:
             self.m_embeddings[global_id].pop()
         self.m_embeddings[global_id].insert(0, matrix)
 
-    def _encode_hailo_face_recognition_result(self, matrix: np.ndarray, name: str) -> dict:
-        return {
-            "name": name,
-            "embedding": matrix.tolist()
-        }
+    def _encode_hailo_face_recognition_result(
+        self, matrix: np.ndarray, name: str
+    ) -> dict:
+        return {"name": name, "embedding": matrix.tolist()}
 
-    def _decode_hailo_face_recognition_result(self, object_json: list, roi: Any,
-                                              embedding_names: list):
+    def _decode_hailo_face_recognition_result(
+        self, object_json: list, roi: Any, embedding_names: list
+    ):
         for entry in object_json:
             if isinstance(entry, dict) and "FaceRecognition" in entry:
                 face_recognition = entry["FaceRecognition"]
@@ -104,24 +105,26 @@ class Gallery:
                     embedding_names.append(face_recognition.get("Name", ""))
                     for embedding_entry in face_recognition["Embeddings"]:
                         if "HailoMatrix" in embedding_entry:
-                            self._decode_matrix(
-                                embedding_entry["HailoMatrix"], roi)
+                            self._decode_matrix(embedding_entry["HailoMatrix"], roi)
 
     def _decode_matrix(self, hailo_matrix_json: dict, roi: Any):
-        if ("data" in hailo_matrix_json and
-            "height" in hailo_matrix_json and
-            "width" in hailo_matrix_json and
-                "features" in hailo_matrix_json):
+        if (
+            "data" in hailo_matrix_json
+            and "height" in hailo_matrix_json
+            and "width" in hailo_matrix_json
+            and "features" in hailo_matrix_json
+        ):
 
             data = hailo_matrix_json["data"]
             height = hailo_matrix_json["height"]
             width = hailo_matrix_json["width"]
             features = hailo_matrix_json["features"]
-            if isinstance(
-                    data, list) and isinstance(
-                    height, int) and isinstance(
-                    width, int) and isinstance(
-                    features, int):
+            if (
+                isinstance(data, list)
+                and isinstance(height, int)
+                and isinstance(width, int)
+                and isinstance(features, int)
+            ):
                 try:
                     # Flatten the data if it's not already flat
                     flat_data = []
@@ -132,8 +135,9 @@ class Gallery:
                     else:
                         flat_data = [float(x) for x in data]
 
-                    roi.add_object(hailo.HailoMatrix(
-                        flat_data, height, width, features))
+                    roi.add_object(
+                        hailo.HailoMatrix(flat_data, height, width, features)
+                    )
                 except ValueError:
                     print(
                         f"Error decoding matrix with height: {height}, "
@@ -155,7 +159,8 @@ class Gallery:
         if self.m_save_new_embeddings:
             name = "Unknown" + str(global_id)
             self._write_to_json_file(
-                self._encode_hailo_face_recognition_result(matrix, name))
+                self._encode_hailo_face_recognition_result(matrix, name)
+            )
 
     def _create_new_global_id(self) -> int:
         self.m_embeddings.append([])
@@ -166,7 +171,9 @@ class Gallery:
         closest_global_id = np.argmin(distances)
         return closest_global_id + 1, distances[closest_global_id]
 
-    def _get_embedding_matrix(self, detection: hailo.HailoDetection) -> Optional[np.ndarray]:
+    def _get_embedding_matrix(
+        self, detection: hailo.HailoDetection
+    ) -> Optional[np.ndarray]:
         embeddings = detection.get_objects_typed(hailo.HAILO_MATRIX)
         if not embeddings:
             return None
@@ -177,52 +184,63 @@ class Gallery:
     def _handle_local_embedding(self, detection: hailo.HailoDetection, global_id: int):
         if (global_id - 1) < len(self.m_embedding_names):
             classification_type = "recognition_result"
-            existing_recognitions = [obj
-                                     for obj in detection.get_objects_typed(
-                                         hailo.HAILO_CLASSIFICATION)
-                                     if obj.get_classification_type() == classification_type]
+            existing_recognitions = [
+                obj
+                for obj in detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
+                if obj.get_classification_type() == classification_type
+            ]
             name = self.m_embedding_names[global_id - 1]
             if not existing_recognitions:
-                detection.add_object(hailo.HailoClassification(
-                    classification_type, name, 1.0))
+                detection.add_object(
+                    hailo.HailoClassification(classification_type, name, 1.0)
+                )
 
-    def _update_embeddings_and_add_id_to_object(self,
-                                                new_embedding: np.ndarray,
-                                                detection: hailo.HailoDetection,
-                                                global_id: int,
-                                                unique_id: int):
+    def _update_embeddings_and_add_id_to_object(
+        self,
+        new_embedding: np.ndarray,
+        detection: hailo.HailoDetection,
+        global_id: int,
+        unique_id: int,
+    ):
         self.tracking_id_to_global_id[unique_id] = global_id
         if not self.m_load_local_embeddings and new_embedding is not None:
             self._add_embedding(global_id, new_embedding)
-        global_ids = [obj for obj in detection.get_objects_typed(
-            hailo.HAILO_UNIQUE_ID) if obj.get_mode() == hailo.GLOBAL_ID]
+        global_ids = [
+            obj
+            for obj in detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
+            if obj.get_mode() == hailo.GLOBAL_ID
+        ]
         if not global_ids:
-            detection.add_object(hailo.HailoUniqueID(
-                global_id, hailo.GLOBAL_ID))
+            detection.add_object(hailo.HailoUniqueID(global_id, hailo.GLOBAL_ID))
 
     def _new_embedding_to_global_id(
-            self, new_embedding: np.ndarray, detection: hailo.HailoDetection, track_id: int):
+        self, new_embedding: np.ndarray, detection: hailo.HailoDetection, track_id: int
+    ):
         if track_id in self.tracking_id_to_global_id:
             # Global id to track already exists, add new embedding to global id
             self._update_embeddings_and_add_id_to_object(
-                new_embedding, detection, self.tracking_id_to_global_id[track_id], track_id)
+                new_embedding,
+                detection,
+                self.tracking_id_to_global_id[track_id],
+                track_id,
+            )
             if self.m_load_local_embeddings:
                 self._handle_local_embedding(
-                    detection, self.tracking_id_to_global_id[track_id])
+                    detection, self.tracking_id_to_global_id[track_id]
+                )
             return
         if new_embedding is None:
             # No embedding exists in this detection object, continue to next detection
             return
         # Get closest global id by distance between embeddings
-        closest_global_id, min_distance = self._get_closest_global_id(
-            new_embedding)
+        closest_global_id, min_distance = self._get_closest_global_id(new_embedding)
         if min_distance < self.m_similarity_thr:
             # Close embedding found, update global id embeddings
             self._update_embeddings_and_add_id_to_object(
-                new_embedding, detection, closest_global_id, track_id)
+                new_embedding, detection, closest_global_id, track_id
+            )
             if self.m_load_local_embeddings:
                 self._handle_local_embedding(detection, closest_global_id)
-
 
     def load_local_gallery_from_json(self, file_path: str):
         if not os.path.exists(file_path):
@@ -231,8 +249,7 @@ class Gallery:
         with open(file_path, "r") as f:
             data = json.load(f)
         roi = hailo.HailoROI(hailo.HailoBBox(0.0, 0.0, 1.0, 1.0))
-        self._decode_hailo_face_recognition_result(
-            data, roi, self.m_embedding_names)
+        self._decode_hailo_face_recognition_result(data, roi, self.m_embedding_names)
         self.m_load_local_embeddings = True
         matrix_objs = roi.get_objects_typed(hailo.HAILO_MATRIX)
         for matrix in matrix_objs:
@@ -246,9 +263,8 @@ class Gallery:
                 continue
             track_id = track_ids[0].get_id()
             new_embedding = self._get_embedding_matrix(detection)
-            self._new_embedding_to_global_id(
-                new_embedding, detection, track_id)
-    
+            self._new_embedding_to_global_id(new_embedding, detection, track_id)
+
     def add_item_to_local_gallery(self, detection: hailo.HailoDetection):
         track_ids = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
         if not track_ids:
@@ -263,11 +279,11 @@ class Gallery:
             global_id = self.create_new_global_id()
             self._save_embedding_to_json_file(new_embedding, global_id)
             self._update_embeddings_and_add_id_to_object(
-                new_embedding, detection, global_id, track_id)
+                new_embedding, detection, global_id, track_id
+            )
             return
         # Get closest global id by distance between embeddings
-        closest_global_id, min_distance = self.get_closest_global_id(
-            new_embedding)
+        closest_global_id, min_distance = self.get_closest_global_id(new_embedding)
         if min_distance > self.m_similarity_thr:
             # if smallest distance is bigger than threshold and local gallery is not loaded
             # -> create new global ID
@@ -275,38 +291,5 @@ class Gallery:
                 global_id = self.create_new_global_id()
                 self._save_embedding_to_json_file(new_embedding, global_id)
                 self._update_embeddings_and_add_id_to_object(
-                    new_embedding, detection, global_id, track_id)
-
-
-if __name__ == "__main__":
-    # Example usage
-    gallery = Gallery(similarity_thr=0.2, queue_size=100)
-
-    # Initialize a local gallery file (if needed)
-    # gallery.init_local_gallery_file("gallery.json")
-
-    # Load local gallery from JSON (if needed)
-    gallery.load_local_gallery_from_json(
-        "/workspaces/src/hailo_rpi_ros2/hailo_rpi_ros2/test_gallery.json")
-
-    # Example HailoDetection and HailoMatrix (replace with your actual data)
-    bbox1 = hailo.HailoBBox(0, 0, 10, 10)
-    detection1 = hailo.HailoDetection(bbox1, "Person1", 0.9)
-
-    matrix1 = hailo.HailoMatrix([0.7, 0.8, 0.9], 1, 1, 3)
-
-    detection1.add_object(matrix1)
-
-    # Corrected HailoUniqueID creation
-    unique_id_object = hailo.HailoUniqueID(1)
-    detection1.add_object(unique_id_object)
-
-    detections = [detection1]
-
-    # Update gallery with detections
-    gallery.update(detections)
-
-    person_embeddings = detections[0].get_objects_typed(
-        hailo.HAILO_CLASSIFICATION)
-    if len(person_embeddings) > 0:
-        print('person: ', person_embeddings[0].get_label())
+                    new_embedding, detection, global_id, track_id
+                )
