@@ -17,6 +17,7 @@ import pytest
 import numpy as np
 from hailo_rpi_ros2.face_gallery import (
     Gallery,
+    GalleryUpdateStatus,
     gallery_one_dim_dot_product,
     gallery_get_xtensor,
 )
@@ -125,7 +126,6 @@ def max_face_matrix():
 @pytest.fixture
 def gallery_and_json(tmp_path, alon_face_matrix, max_face_matrix):
     # Create a test JSON file
-    np.random.seed(42)  # Set a fixed seed
     test_json_path = tmp_path / "test_gallery.json"
     test_data = [
         {
@@ -204,33 +204,15 @@ def test_alon_face_found(gallery_and_json, alon_face_matrix):
     assert calls[1][0][0].get_label() == "Alon"
 
 
-# Test Case 2: No embedding in detection
-def test_update_no_embedding(gallery_and_json):
+def test_max_face_found(gallery_and_json, max_face_matrix):
     gallery, _ = gallery_and_json
 
-    # Mock detection with no embedding
-    mock_detection = MagicMock()
-    mock_detection.get_objects_typed.return_value = []  # No embedding or unique ID
-
-    # Call the public update method
-    gallery.update([mock_detection])
-
-    # Assertions
-    mock_detection.add_object.assert_not_called()
-
-
-# Test Case 3: Similar embedding found (and local embeddings loaded)
-def test_update_similar_embedding(gallery_and_json):
-    gallery, _ = gallery_and_json
-
-    # Mock detection with similar embedding
+    # Mock detection with existing track ID
     mock_detection = MagicMock()
     mock_matrix = MagicMock()
-    mock_matrix.get_data.return_value = gallery.m_embeddings[0][0] + np.random.normal(
-        loc=0.0, scale=0.01, size=512
-    )  # Shape (512,)
+    mock_matrix.get_data.return_value = max_face_matrix
     mock_unique_id = MagicMock()
-    mock_unique_id.get_id.return_value = 3
+    mock_unique_id.get_id.return_value = 1
 
     # Set up mock behavior
     mock_detection.get_objects_typed.side_effect = [
@@ -247,23 +229,33 @@ def test_update_similar_embedding(gallery_and_json):
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 2
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_id() == 2
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
     assert isinstance(calls[1][0][0], hailo.HailoClassification)
-    assert calls[1][0][0].get_label() == "Alon"
-    assert gallery.tracking_id_to_global_id[3] == 1
+    assert calls[1][0][0].get_label() == "Max"
 
 
-# Test Case 4: Dissimilar embedding found
+def test_update_no_embedding(gallery_and_json):
+    gallery, _ = gallery_and_json
+
+    # Mock detection with no embedding
+    mock_detection = MagicMock()
+    mock_detection.get_objects_typed.return_value = []  # No embedding or unique ID
+
+    # Call the public update method
+    gallery.update([mock_detection])
+
+    # Assertions
+    mock_detection.add_object.assert_not_called()
+
+
 def test_update_dissimilar_embedding(gallery_and_json):
     gallery, _ = gallery_and_json
 
     # Mock detection with dissimilar embedding
     mock_detection = MagicMock()
     mock_matrix = MagicMock()
-    mock_matrix.get_data.return_value = (
-        generate_realistic_embedding()
-    )
+    mock_matrix.get_data.return_value = generate_realistic_embedding()
     mock_unique_id = MagicMock()
     mock_unique_id.get_id.return_value = 4
 
@@ -281,3 +273,374 @@ def test_update_dissimilar_embedding(gallery_and_json):
     # Assertions
     mock_detection.add_object.assert_not_called()
     assert 4 not in gallery.tracking_id_to_global_id
+
+
+def test_add_item_to_existing_gallery(gallery_and_json):
+    gallery, test_json_path = gallery_and_json
+    embedding = generate_realistic_embedding()
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = embedding
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    assert (
+        gallery.register_new_item(
+            name="Stefanos", detection=mock_detection, replace=False
+        )
+        == GalleryUpdateStatus.SUCCESS
+    )
+
+    # Assertions
+    calls = mock_detection.add_object.call_args_list
+    assert len(calls) == 2
+    assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
+    assert calls[0][0][0].get_id() == 3
+    assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
+    assert isinstance(calls[1][0][0], hailo.HailoClassification)
+    assert calls[1][0][0].get_label() == "Stefanos"
+    assert gallery.tracking_id_to_global_id[11] == 3
+
+    # Check if the file was created and written to
+    assert os.path.exists(str(test_json_path))
+    with open(str(test_json_path), "r") as f:
+        data = json.load(f)
+    assert len(data) == 3
+    assert data[2]["FaceRecognition"]["Name"] == "Stefanos"
+    assert (
+        data[2]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
+        == embedding.tolist()
+    )
+
+
+def test_add_two_items_to_empty_gallery(tmp_path):
+    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = generate_realistic_embedding()
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    gallery.register_new_item(name="Stefanos", detection=mock_detection, replace=False)
+
+    # Mock detection with dissimilar embedding
+    mock_detection2 = MagicMock()
+    mock_matrix2 = MagicMock()
+    mock_matrix2.get_data.return_value = generate_realistic_embedding()
+    mock_unique_id2 = MagicMock()
+    mock_unique_id2.get_id.return_value = 12
+
+    # Set up mock behavior
+    mock_detection2.get_objects_typed.side_effect = [
+        [mock_unique_id2],
+        [mock_matrix2],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    gallery.register_new_item(name="Max", detection=mock_detection2, replace=False)
+
+    # Assertions
+    calls = mock_detection.add_object.call_args_list
+    assert len(calls) == 2
+    assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
+    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
+    assert isinstance(calls[1][0][0], hailo.HailoClassification)
+    assert calls[1][0][0].get_label() == "Stefanos"
+    assert gallery.tracking_id_to_global_id[11] == 1
+
+    calls = mock_detection2.add_object.call_args_list
+    assert len(calls) == 2
+    assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
+    assert calls[0][0][0].get_id() == 2
+    assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
+    assert isinstance(calls[1][0][0], hailo.HailoClassification)
+    assert calls[1][0][0].get_label() == "Max"
+    assert gallery.tracking_id_to_global_id[12] == 2
+
+    # Check if the file was created and written to
+    assert os.path.exists(str(tmp_path / "test.json"))
+    with open(str(tmp_path / "test.json"), "r") as f:
+        data = json.load(f)
+    assert len(data) == 2
+    assert data[0]["FaceRecognition"]["Name"] == "Stefanos"
+    assert data[1]["FaceRecognition"]["Name"] == "Max"
+
+
+def test_replace_identical_item_to_empty_gallery(tmp_path):
+    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+
+    identical_matrix = generate_realistic_embedding()
+
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = identical_matrix
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    assert (
+        gallery.register_new_item(
+            name="Stefanos", detection=mock_detection, replace=False
+        )
+        == GalleryUpdateStatus.SUCCESS
+    )
+
+    # Mock detection with dissimilar embedding
+    mock_detection2 = MagicMock()
+    mock_matrix2 = MagicMock()
+    mock_matrix2.get_data.return_value = identical_matrix
+    mock_unique_id2 = MagicMock()
+    mock_unique_id2.get_id.return_value = 12
+
+    # Set up mock behavior
+    mock_detection2.get_objects_typed.side_effect = [
+        [mock_unique_id2],
+        [mock_matrix2],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    assert (
+        gallery.register_new_item(name="Max", detection=mock_detection2, replace=True)
+        == GalleryUpdateStatus.SUCCESS
+    )
+
+    # Assertions
+    calls = mock_detection.add_object.call_args_list
+    assert len(calls) == 2
+    assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
+    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
+    assert isinstance(calls[1][0][0], hailo.HailoClassification)
+    assert calls[1][0][0].get_label() == "Stefanos"
+    assert gallery.tracking_id_to_global_id[11] == 1
+
+    calls = mock_detection2.add_object.call_args_list
+    assert len(calls) == 2
+    assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
+    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
+    assert isinstance(calls[1][0][0], hailo.HailoClassification)
+    assert calls[1][0][0].get_label() == "Max"
+    assert gallery.tracking_id_to_global_id[12] == 1
+
+    # Check if the file was created and written to
+    assert os.path.exists(str(tmp_path / "test.json"))
+    with open(str(tmp_path / "test.json"), "r") as f:
+        data = json.load(f)
+    assert len(data) == 1
+    assert data[0]["FaceRecognition"]["Name"] == "Max"
+    assert (
+        data[0]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
+        == identical_matrix.tolist()
+    )
+
+
+def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
+    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+
+    identical_matrix = generate_realistic_embedding()
+
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = identical_matrix
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    assert (
+        gallery.register_new_item(
+            name="Stefanos", detection=mock_detection, replace=False
+        )
+        == GalleryUpdateStatus.SUCCESS
+    )
+
+    # Mock detection with dissimilar embedding
+    mock_detection2 = MagicMock()
+    mock_matrix2 = MagicMock()
+    mock_matrix2.get_data.return_value = identical_matrix
+    mock_unique_id2 = MagicMock()
+    mock_unique_id2.get_id.return_value = 12
+
+    # Set up mock behavior
+    mock_detection2.get_objects_typed.side_effect = [
+        [mock_unique_id2],
+        [mock_matrix2],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    assert (
+        gallery.register_new_item(
+            name="Stefanos", detection=mock_detection2, replace=True
+        )
+        == GalleryUpdateStatus.SUCCESS
+    )
+
+    # Assertions
+    calls = mock_detection.add_object.call_args_list
+    assert len(calls) == 2
+    assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
+    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
+    assert isinstance(calls[1][0][0], hailo.HailoClassification)
+    assert calls[1][0][0].get_label() == "Stefanos"
+    assert gallery.tracking_id_to_global_id[11] == 1
+
+    calls = mock_detection2.add_object.call_args_list
+    assert len(calls) == 2
+    assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
+    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
+    assert isinstance(calls[1][0][0], hailo.HailoClassification)
+    assert calls[1][0][0].get_label() == "Stefanos"
+    assert gallery.tracking_id_to_global_id[12] == 1
+
+    # Check if the file was created and written to
+    assert os.path.exists(str(tmp_path / "test.json"))
+    with open(str(tmp_path / "test.json"), "r") as f:
+        data = json.load(f)
+    assert len(data) == 1
+    assert data[0]["FaceRecognition"]["Name"] == "Stefanos"
+    assert (
+        data[0]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
+        == identical_matrix.tolist()
+    )
+
+
+def test_add_identical_item_to_empty_gallery_item_exists(tmp_path):
+    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+
+    identical_matrix = generate_realistic_embedding()
+
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = identical_matrix
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    assert (
+        gallery.register_new_item(
+            name="Stefanos", detection=mock_detection, replace=False
+        )
+        == GalleryUpdateStatus.SUCCESS
+    )
+
+    # Mock detection with dissimilar embedding
+    mock_detection2 = MagicMock()
+    mock_matrix2 = MagicMock()
+    mock_matrix2.get_data.return_value = identical_matrix
+    mock_unique_id2 = MagicMock()
+    mock_unique_id2.get_id.return_value = 12
+
+    # Set up mock behavior
+    mock_detection2.get_objects_typed.side_effect = [
+        [mock_unique_id2],
+        [mock_matrix2],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    assert (
+        gallery.register_new_item(
+            name="Stefanos", detection=mock_detection2, replace=False
+        )
+        == GalleryUpdateStatus.ITEM_ALREADY_EXISTS
+    )
+
+
+def test_delete_one_item(tmp_path):
+    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+
+    identical_matrix = generate_realistic_embedding()
+
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = identical_matrix
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    assert (
+        gallery.register_new_item(
+            name="Stefanos", detection=mock_detection, replace=False
+        )
+        == GalleryUpdateStatus.SUCCESS
+    )
+
+    gallery.delete_item("Stefanos")
+
+    # Assertions
+    calls = mock_detection.add_object.call_args_list
+    assert len(calls) == 2
+    assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
+    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
+    assert isinstance(calls[1][0][0], hailo.HailoClassification)
+    assert calls[1][0][0].get_label() == "Stefanos"
+    assert gallery.tracking_id_to_global_id[11] == 1
+
+    # Check if the file was created and written to
+    assert os.path.exists(str(tmp_path / "test.json"))
+    with open(str(tmp_path / "test.json"), "r") as f:
+        data = json.load(f)
+    assert len(data) == 1
+    assert data[0]["FaceRecognition"]["Name"] == ""
+    assert (
+        data[0]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
+        == identical_matrix.tolist()
+    )

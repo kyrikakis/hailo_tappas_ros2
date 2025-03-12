@@ -13,6 +13,7 @@
       "vscode": {
         "extensions": [
             "ms-python.python@2024.4.1",
+            "ms-python.black-formatter",
             "ms-vscode.cpptools-extension-pack",
             "ms-vscode.cmake-tools",
             "twxs.cmake"

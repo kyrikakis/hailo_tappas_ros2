@@ -18,6 +18,14 @@ import json
 import hailo
 import os
 from typing import List, Dict, Tuple, Optional, Any
+from enum import Enum
+
+
+class GalleryUpdateStatus(Enum):
+    SUCCESS = 0
+    NO_TRACK_ID = 1
+    NO_EMBEDDING = 2
+    ITEM_ALREADY_EXISTS = 3
 
 
 # Helper functions
@@ -50,14 +58,18 @@ def gallery_one_dim_dot_product(array1, array2):
 
 # Gallery class
 class Gallery:
-    def __init__(self, similarity_thr=0.40, queue_size=100):
+    def __init__(
+        self,
+        similarity_thr=0.40,
+        queue_size=100,
+        m_json_file_path="face_recognition_local_gallery.json",
+    ):
         self.m_embeddings: List[List[np.ndarray]] = []
         self.tracking_id_to_global_id: Dict[int, int] = {}
         self.m_embedding_names: List[str] = []
         self.m_similarity_thr: float = similarity_thr
         self.m_queue_size: int = queue_size
-        self.m_save_new_embeddings: bool = False
-        self.m_json_file_path: Optional[str] = None
+        self.m_json_file_path: Optional[str] = m_json_file_path
 
     @staticmethod
     def _get_distance(embeddings_queue: List[np.ndarray], matrix: np.ndarray) -> float:
@@ -75,13 +87,6 @@ class Gallery:
         ]
         return np.array(distances)
 
-    def _init_local_gallery_file(self, file_path: str):
-        if not os.path.exists(file_path):
-            with open(file_path, "w") as f:
-                json.dump([], f)
-        self.m_json_file_path = file_path
-        self.m_save_new_embeddings = True
-
     def _add_embedding(self, global_id: int, matrix: np.ndarray):
         global_id -= 1
         if len(self.m_embeddings[global_id]) >= self.m_queue_size:
@@ -91,7 +96,21 @@ class Gallery:
     def _encode_hailo_face_recognition_result(
         self, matrix: np.ndarray, name: str
     ) -> dict:
-        return {"name": name, "embedding": matrix.tolist()}
+        return {
+            "FaceRecognition": {
+                "Name": name,
+                "Embeddings": [
+                    {
+                        "HailoMatrix": {
+                            "width": 1,
+                            "height": 1,
+                            "features": matrix.shape[0],
+                            "data": matrix.tolist(),
+                        }
+                    }
+                ],
+            }
+        }
 
     def _decode_hailo_face_recognition_result(
         self, object_json: list, roi: Any, embedding_names: list
@@ -145,6 +164,11 @@ class Gallery:
                     )
 
     def _write_to_json_file(self, document: dict):
+        # Create the file if it doesn't exist
+        if not os.path.exists(self.m_json_file_path):
+            with open(self.m_json_file_path, "w") as f:
+                json.dump([], f)  # Initialize with an empty list
+
         with open(self.m_json_file_path, "rb+") as f:
             f.seek(0, os.SEEK_END)
             if f.tell() > 2:
@@ -152,15 +176,53 @@ class Gallery:
                 f.write(b",")
             else:
                 f.seek(-1, os.SEEK_END)
-            json.dump(document, f, indent=4)
+            f.write(json.dumps(document, indent=4).encode("utf-8"))
             f.write(b"]")
 
-    def _save_embedding_to_json_file(self, matrix: np.ndarray, global_id: int):
-        if self.m_save_new_embeddings:
-            name = "Unknown" + str(global_id)
-            self._write_to_json_file(
-                self._encode_hailo_face_recognition_result(matrix, name)
-            )
+    def _save_embedding_to_json_file(
+        self, name: str, matrix: np.ndarray, global_id: int
+    ):
+        self._write_to_json_file(
+            self._encode_hailo_face_recognition_result(matrix, name)
+        )
+
+    def _replace_embedding_in_json(
+        self, old_name: str, new_name: str, new_embedding: np.ndarray
+    ):
+        if not os.path.exists(self.m_json_file_path):
+            raise FileNotFoundError(f"JSON file not found: {self.m_json_file_path}")
+
+        try:
+            with open(self.m_json_file_path, "r") as f:
+                data = json.load(f)
+        except json.JSONDecodeError:
+            raise ValueError(f"Invalid JSON in file: {self.m_json_file_path}")
+
+        found = False
+        for item in data:
+            if (
+                "FaceRecognition" in item
+                and item["FaceRecognition"].get("Name") == old_name
+            ):
+                item["FaceRecognition"]["Name"] = new_name
+                if new_embedding is not None:
+                    item["FaceRecognition"]["Embeddings"][0]["HailoMatrix"][
+                        "data"
+                    ] = new_embedding.tolist()
+                    item["FaceRecognition"]["Embeddings"][0]["HailoMatrix"][
+                        "features"
+                    ] = new_embedding.shape[0]
+                found = True
+                break
+
+        if not found:
+            raise ValueError(f"Name '{old_name}' not found in JSON data.")
+
+        try:
+            with open(self.m_json_file_path, "w") as f:
+                json.dump(data, f, indent=4)
+        except IOError as e:
+            raise IOError(f"Error writing to JSON file: {e}")
 
     def _create_new_global_id(self) -> int:
         self.m_embeddings.append([])
@@ -236,6 +298,21 @@ class Gallery:
             )
             self._handle_local_embedding(detection, closest_global_id)
 
+    def _add_and_save_embedding(
+        self,
+        name: str,
+        new_embedding: np.ndarray,
+        detection: hailo.HailoDetection,
+        track_id: int,
+    ):
+        global_id = self._create_new_global_id()
+        self.m_embedding_names.append(name)
+        self._save_embedding_to_json_file(name, new_embedding, global_id)
+        self._update_embeddings_and_add_id_to_object(
+            new_embedding, detection, global_id, track_id
+        )
+        self._handle_local_embedding(detection, global_id)
+
     def load_local_gallery_from_json(self, file_path: str):
         if not os.path.exists(file_path):
             raise RuntimeError("Gallery JSON file does not exist")
@@ -261,30 +338,42 @@ class Gallery:
                 continue
             self._new_embedding_to_global_id(new_embedding, detection, track_id)
 
-    def add_item_to_local_gallery(self, detection: hailo.HailoDetection):
+    def register_new_item(
+        self, name: str, detection: hailo.HailoDetection, replace: bool
+    ) -> GalleryUpdateStatus:
         track_ids = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
         if not track_ids:
-            raise RuntimeError("no trackids found in detection")
+            return GalleryUpdateStatus.NO_TRACK_ID
         track_id = track_ids[0].get_id()
         new_embedding = self._get_embedding_matrix(detection)
         if new_embedding is None:
             # No embedding exists in this detection object, continue to next detection
-            return
+            return GalleryUpdateStatus.NO_EMBEDDING
         if not self.m_embeddings:
             # Gallery is empty, adding new global id
-            global_id = self.create_new_global_id()
-            self._save_embedding_to_json_file(new_embedding, global_id)
-            self._update_embeddings_and_add_id_to_object(
-                new_embedding, detection, global_id, track_id
-            )
-            return
-        # Get closest global id by distance between embeddings
-        closest_global_id, min_distance = self.get_closest_global_id(new_embedding)
+            self._add_and_save_embedding(name, new_embedding, detection, track_id)
+            return GalleryUpdateStatus.SUCCESS
+        # Check if there is no other object in close distance
+        closest_global_id, min_distance = self._get_closest_global_id(new_embedding)
         if min_distance > self.m_similarity_thr:
-            # if smallest distance is bigger than threshold and local gallery is not loaded
-            # -> create new global ID
-            global_id = self.create_new_global_id()
-            self._save_embedding_to_json_file(new_embedding, global_id)
-            self._update_embeddings_and_add_id_to_object(
-                new_embedding, detection, global_id, track_id
-            )
+            # if smallest distance is bigger than similarity threshold
+            self._add_and_save_embedding(name, new_embedding, detection, track_id)
+            return GalleryUpdateStatus.SUCCESS
+        else:
+            # Similar embedding found
+            if replace:
+                old_name = self.m_embedding_names[closest_global_id - 1]
+                self.m_embedding_names[closest_global_id - 1] = name
+                self._replace_embedding_in_json(old_name, name, new_embedding)
+                self._update_embeddings_and_add_id_to_object(
+                    new_embedding, detection, closest_global_id, track_id
+                )
+                self._handle_local_embedding(detection, closest_global_id)
+                return GalleryUpdateStatus.SUCCESS
+            else:
+                return GalleryUpdateStatus.ITEM_ALREADY_EXISTS
+
+    def delete_item(self, name: str):
+        # You are never get removed, just removes your name
+        self.m_embedding_names[self.m_embedding_names.index(name)] = ""
+        self._replace_embedding_in_json(name, "", None)
