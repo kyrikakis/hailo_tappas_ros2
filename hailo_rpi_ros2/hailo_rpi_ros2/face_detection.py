@@ -75,21 +75,17 @@ class FaceDetection(app_callback_class):
         # Get the detections from the buffer
         roi = hailo.get_roi_from_buffer(buffer)
         detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
-
+        self.gallery.update(detections)
         # Parse the detections
         detection_count = 0
         for detection in detections:
             label = detection.get_label()
             confidence = detection.get_confidence()
+            person_embeddings = detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
+            if len(person_embeddings) > 0:
+                print('person: ', person_embeddings[0].get_label())
             # Get track ID
             track_id = 0
-            embeddings = detection.get_objects_typed(hailo.HAILO_MATRIX)
-            if len(embeddings) == 1:
-                detections = [detection]
-                self.gallery.update(detections)
-                person_embeddings = detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
-                if len(person_embeddings) > 0:
-                    print('person: ', person_embeddings[0].get_label())
             track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
             if len(track) == 1:
                 track_id = track[0].get_id()
