@@ -107,16 +107,25 @@ def test_gallery_get_closest_global_id():
 
 
 # Helper function to generate realistic embeddings
-def generate_realistic_embedding(size=512):
+def generate_realistic_embedding(size=512) -> np.ndarray:
     return np.random.normal(loc=0.0, scale=0.1, size=size)
+
+
+@pytest.fixture
+def alon_face_matrix():
+    yield generate_realistic_embedding()
+
+
+@pytest.fixture
+def max_face_matrix():
+    yield generate_realistic_embedding()
 
 
 # Fixture for the Gallery object and test JSON file
 @pytest.fixture
-def gallery_and_json(tmp_path):
+def gallery_and_json(tmp_path, alon_face_matrix, max_face_matrix):
     # Create a test JSON file
     np.random.seed(42)  # Set a fixed seed
-    matrix1 = generate_realistic_embedding()
     test_json_path = tmp_path / "test_gallery.json"
     test_data = [
         {
@@ -128,12 +137,27 @@ def gallery_and_json(tmp_path):
                             "width": 1,
                             "height": 1,
                             "features": 512,
-                            "data": matrix1.tolist(),
+                            "data": alon_face_matrix.tolist(),
                         }
                     }
                 ],
             }
-        }
+        },
+        {
+            "FaceRecognition": {
+                "Name": "Max",
+                "Embeddings": [
+                    {
+                        "HailoMatrix": {
+                            "width": 1,
+                            "height": 1,
+                            "features": 512,
+                            "data": max_face_matrix.tolist(),
+                        }
+                    }
+                ],
+            }
+        },
     ]
     with open(test_json_path, "w") as f:
         json.dump(test_data, f)
@@ -149,13 +173,13 @@ def gallery_and_json(tmp_path):
 
 
 # Test Case 1: Track ID already exists (and local embeddings loaded)
-def test_update_existing_track_id(gallery_and_json):
+def test_alon_face_found(gallery_and_json, alon_face_matrix):
     gallery, _ = gallery_and_json
 
     # Mock detection with existing track ID
     mock_detection = MagicMock()
     mock_matrix = MagicMock()
-    mock_matrix.get_data.return_value = generate_realistic_embedding()  # Shape (512,)
+    mock_matrix.get_data.return_value = alon_face_matrix
     mock_unique_id = MagicMock()
     mock_unique_id.get_id.return_value = 1
 
@@ -166,9 +190,6 @@ def test_update_existing_track_id(gallery_and_json):
         [],  # No classifications
         [],  # Additional call (if any)
     ]
-
-    # Pre-populate tracking ID to global ID mapping
-    gallery.tracking_id_to_global_id[1] = 1
 
     # Call the public update method
     gallery.update([mock_detection])
@@ -241,8 +262,8 @@ def test_update_dissimilar_embedding(gallery_and_json):
     mock_detection = MagicMock()
     mock_matrix = MagicMock()
     mock_matrix.get_data.return_value = (
-        generate_realistic_embedding() + 1
-    )  # Shape (512,)
+        generate_realistic_embedding()
+    )
     mock_unique_id = MagicMock()
     mock_unique_id.get_id.return_value = 4
 

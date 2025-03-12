@@ -58,7 +58,6 @@ class Gallery:
         self.m_queue_size: int = queue_size
         self.m_save_new_embeddings: bool = False
         self.m_json_file_path: Optional[str] = None
-        self.m_load_local_embeddings: bool = False
 
     @staticmethod
     def _get_distance(embeddings_queue: List[np.ndarray], matrix: np.ndarray) -> float:
@@ -103,7 +102,8 @@ class Gallery:
                 if "Embeddings" in face_recognition:
                     # get the name, if it does not exist, use ""
                     embedding_names.append(face_recognition.get("Name", ""))
-                    for embedding_entry in face_recognition["Embeddings"]:
+                    embeddings = face_recognition["Embeddings"]
+                    for embedding_entry in embeddings:
                         if "HailoMatrix" in embedding_entry:
                             self._decode_matrix(embedding_entry["HailoMatrix"], roi)
 
@@ -203,8 +203,7 @@ class Gallery:
         unique_id: int,
     ):
         self.tracking_id_to_global_id[unique_id] = global_id
-        if not self.m_load_local_embeddings and new_embedding is not None:
-            self._add_embedding(global_id, new_embedding)
+        self._add_embedding(global_id, new_embedding)
         global_ids = [
             obj
             for obj in detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
@@ -224,13 +223,9 @@ class Gallery:
                 self.tracking_id_to_global_id[track_id],
                 track_id,
             )
-            if self.m_load_local_embeddings:
-                self._handle_local_embedding(
-                    detection, self.tracking_id_to_global_id[track_id]
-                )
-            return
-        if new_embedding is None:
-            # No embedding exists in this detection object, continue to next detection
+            self._handle_local_embedding(
+                detection, self.tracking_id_to_global_id[track_id]
+            )
             return
         # Get closest global id by distance between embeddings
         closest_global_id, min_distance = self._get_closest_global_id(new_embedding)
@@ -239,8 +234,7 @@ class Gallery:
             self._update_embeddings_and_add_id_to_object(
                 new_embedding, detection, closest_global_id, track_id
             )
-            if self.m_load_local_embeddings:
-                self._handle_local_embedding(detection, closest_global_id)
+            self._handle_local_embedding(detection, closest_global_id)
 
     def load_local_gallery_from_json(self, file_path: str):
         if not os.path.exists(file_path):
@@ -250,7 +244,6 @@ class Gallery:
             data = json.load(f)
         roi = hailo.HailoROI(hailo.HailoBBox(0.0, 0.0, 1.0, 1.0))
         self._decode_hailo_face_recognition_result(data, roi, self.m_embedding_names)
-        self.m_load_local_embeddings = True
         matrix_objs = roi.get_objects_typed(hailo.HAILO_MATRIX)
         for matrix in matrix_objs:
             global_id = self._create_new_global_id()
@@ -263,6 +256,9 @@ class Gallery:
                 continue
             track_id = track_ids[0].get_id()
             new_embedding = self._get_embedding_matrix(detection)
+            if new_embedding is None:
+                # No embedding exists in this detection object, continue to next detection
+                continue
             self._new_embedding_to_global_id(new_embedding, detection, track_id)
 
     def add_item_to_local_gallery(self, detection: hailo.HailoDetection):
@@ -287,9 +283,8 @@ class Gallery:
         if min_distance > self.m_similarity_thr:
             # if smallest distance is bigger than threshold and local gallery is not loaded
             # -> create new global ID
-            if not self.m_load_local_embeddings:
-                global_id = self.create_new_global_id()
-                self._save_embedding_to_json_file(new_embedding, global_id)
-                self._update_embeddings_and_add_id_to_object(
-                    new_embedding, detection, global_id, track_id
-                )
+            global_id = self.create_new_global_id()
+            self._save_embedding_to_json_file(new_embedding, global_id)
+            self._update_embeddings_and_add_id_to_object(
+                new_embedding, detection, global_id, track_id
+            )
