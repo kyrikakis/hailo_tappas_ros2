@@ -1,0 +1,6 @@
+hailo_detection:
+  ros__parameters:
+      face_recognition:
+        local_gallery_file: local_gallery.json
+        similarity_threshhold: 0.40
+        queue_size: 100

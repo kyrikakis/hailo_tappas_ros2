@@ -17,32 +17,62 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CompressedImage
 from hailo_rpi_ros2_interfaces.srv import AddPerson
-from hailo_rpi_ros2 import face_detection
+from hailo_rpi_ros2 import face_recognition
+from hailo_rpi_ros2 import face_gallery
 import cv2
+from rclpy import Parameter
 
 
 class HailoDetection(Node):
     def __init__(self):
-        Node.__init__(self, 'hailo_detection')
+        Node.__init__(self, "hailo_detection")
 
         self.image_publisher_compressed = self.create_publisher(
-            CompressedImage, '/camera/image_raw/compressed', 10)
-        self.image_publisher_ = self.create_publisher(Image, '/camera/image_raw', 10)
+            CompressedImage, "/camera/image_raw/compressed", 10
+        )
+        self.image_publisher_ = self.create_publisher(Image, "/camera/image_raw", 10)
 
-        self.srv = self.create_service(AddPerson, '~/add_person', self.add_person_callback)
+        self.srv = self.create_service(
+            AddPerson, "~/add_person", self.add_person_callback
+        )
 
-        self.face_detection = face_detection.FaceDetection(self.frame_callback)
+        self.declare_parameters(
+            namespace="",
+            parameters=[
+                ("face_recognition.local_gallery_file", Parameter.Type.STRING),
+                ("face_recognition.similarity_threshhold", Parameter.Type.DOUBLE),
+                ("face_recognition.queue_size", Parameter.Type.INTEGER),
+            ],
+        )
+        # self.local_gallery_file = (
+        #     self.get_parameter("face_recognition.local_gallery_file").get_parameter_value().string_value
+        # )
+        # self.similarity_threshhold = (
+        #     self.get_parameter("face_recognition.similarity_threshhold")
+        #     .get_parameter_value()
+        #     .double_value
+        # )
+        # self.queue_size = (
+        #     self.get_parameter("face_recognition.queue_size").get_parameter_value().integer_value
+        # )
 
-    def add_person_callback(self, request: AddPerson.Request, response: AddPerson.Response):
-        self.get_logger().info(f'Incoming request: Add person {request.name}')
+        gallery = face_gallery.Gallery()
+        self.face_recognition = face_recognition.FaceRecognition(
+            gallery, self.frame_callback
+        )
+
+    def add_person_callback(
+        self, request: AddPerson.Request, response: AddPerson.Response
+    ):
+        self.get_logger().info(f"Incoming request: Add person {request.name}")
         response.success = True
         response.message = "Person added"
         return response
 
     def frame_callback(self, frame: cv2.UMat):
-        ret, buffer = cv2.imencode('.jpg', frame)
+        ret, buffer = cv2.imencode(".jpg", frame)
         msg = CompressedImage()
-        msg.header.frame_id = 'camera_frame'
+        msg.header.frame_id = "camera_frame"
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.format = "jpeg"
         msg.data = buffer.tobytes()
@@ -65,5 +95,5 @@ def main(args=None):
 
 
 # Main program logic follows:
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

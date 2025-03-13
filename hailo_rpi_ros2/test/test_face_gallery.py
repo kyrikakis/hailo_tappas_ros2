@@ -323,7 +323,7 @@ def test_add_item_to_existing_gallery(gallery_and_json):
 
 
 def test_add_two_items_to_empty_gallery(tmp_path):
-    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+    gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     # Mock detection with dissimilar embedding
     mock_detection = MagicMock()
@@ -388,7 +388,7 @@ def test_add_two_items_to_empty_gallery(tmp_path):
 
 
 def test_replace_identical_item_to_empty_gallery(tmp_path):
-    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+    gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
 
@@ -459,9 +459,7 @@ def test_replace_identical_item_to_empty_gallery(tmp_path):
         data = json.load(f)
     assert len(data) == 1
     assert data[0]["FaceRecognition"]["Name"] == "Max"
-    assert (
-        len(data[0]["FaceRecognition"]["Embeddings"]) == 2
-    ) 
+    assert len(data[0]["FaceRecognition"]["Embeddings"]) == 2
     assert (
         data[0]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
         == identical_matrix.tolist()
@@ -473,7 +471,7 @@ def test_replace_identical_item_to_empty_gallery(tmp_path):
 
 
 def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
-    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+    gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
 
@@ -546,9 +544,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
         data = json.load(f)
     assert len(data) == 1
     assert data[0]["FaceRecognition"]["Name"] == "Stefanos"
-    assert (
-        len(data[0]["FaceRecognition"]["Embeddings"]) == 2
-    ) 
+    assert len(data[0]["FaceRecognition"]["Embeddings"]) == 2
     assert (
         data[0]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
         == identical_matrix.tolist()
@@ -560,7 +556,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
 
 
 def test_add_identical_item_to_empty_gallery_item_exists(tmp_path):
-    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+    gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
 
@@ -610,7 +606,7 @@ def test_add_identical_item_to_empty_gallery_item_exists(tmp_path):
 
 
 def test_delete_one_item(tmp_path):
-    gallery = Gallery(m_json_file_path=str(tmp_path / "test.json"))
+    gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
 

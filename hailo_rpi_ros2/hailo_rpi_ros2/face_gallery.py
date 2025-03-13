@@ -60,16 +60,16 @@ def gallery_one_dim_dot_product(array1, array2):
 class Gallery:
     def __init__(
         self,
+        json_file_path="local_gallery.json",
         similarity_thr=0.40,
         queue_size=100,
-        m_json_file_path="face_recognition_local_gallery.json",
     ):
         self.m_embeddings: List[List[np.ndarray]] = []
         self.tracking_id_to_global_id: Dict[int, int] = {}
         self.m_embedding_names: List[str] = []
         self.m_similarity_thr: float = similarity_thr
         self.m_queue_size: int = queue_size
-        self.m_json_file_path: Optional[str] = m_json_file_path
+        self.m_json_file_path: Optional[str] = json_file_path
 
     @staticmethod
     def _get_distance(embeddings_queue: List[np.ndarray], matrix: np.ndarray) -> float:
@@ -211,7 +211,7 @@ class Gallery:
                             "width": 1,
                             "height": 1,
                             "features": new_embedding.shape[0],
-                            "data": new_embedding.tolist()
+                            "data": new_embedding.tolist(),
                         }
                     }
                     item["FaceRecognition"]["Embeddings"].append(new_embedding_data)

@@ -19,9 +19,7 @@ from hailo_apps_infra.hailo_rpi_common import (
     get_numpy_from_buffer,
     app_callback_class,
 )
-from hailo_rpi_ros2 import (
-    face_gallery
-)
+from hailo_rpi_ros2 import face_gallery
 import hailo
 from hailo_apps_infra.face_detection_pipeline import GStreamerFaceDetectionApp
 from typing import Callable
@@ -30,14 +28,16 @@ from threading import Thread
 import cv2
 
 
-class FaceDetection(app_callback_class):
-    def __init__(self, frame_callback: Callable[[cv2.UMat], None]):
+class FaceRecognition(app_callback_class):
+    def __init__(
+        self, gallery: face_gallery.Gallery, frame_callback: Callable[[cv2.UMat], None]
+    ):
         app_callback_class.__init__(self)
         self.frame_callback = frame_callback
-        self.gallery = face_gallery.Gallery(similarity_thr=0.4, queue_size=100)
+        self.gallery = gallery
         self.gallery.load_local_gallery_from_json(
-            '/usr/local/lib/python3.11/dist-packages/resources/' +
-            'face_recognition_local_gallery.json'
+            "/usr/local/lib/python3.11/dist-packages/resources/"
+            + "face_recognition_local_gallery.json"
         )
 
         app = GStreamerFaceDetectionApp(self.app_callback, self)
@@ -47,7 +47,7 @@ class FaceDetection(app_callback_class):
 
     def __del__(self):
         """Destructor to ensure the thread is joined when the object is destroyed."""
-        if hasattr(self, 'detection_thread') and self.detection_thread.is_alive():
+        if hasattr(self, "detection_thread") and self.detection_thread.is_alive():
             self.detection_thread.join()  # Wait for the thread to finish
             print("Detection thread joined.")
 
@@ -68,7 +68,12 @@ class FaceDetection(app_callback_class):
 
         # If the user_data.use_frame is set to True, we can get the video frame from the buffer
         frame = None
-        if user_data.use_frame and format is not None and width is not None and height is not None:
+        if (
+            user_data.use_frame
+            and format is not None
+            and width is not None
+            and height is not None
+        ):
             # Get video frame
             frame = get_numpy_from_buffer(buffer, format, width, height)
 
@@ -83,18 +88,28 @@ class FaceDetection(app_callback_class):
             confidence = detection.get_confidence()
             person_embeddings = detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
             if len(person_embeddings) > 0:
-                print('person: ', person_embeddings[0].get_label())
+                print("person: ", person_embeddings[0].get_label())
             # Get track ID
             track_id = 0
             track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
             if len(track) == 1:
                 track_id = track[0].get_id()
             string_to_print += (
-                f"Detection: ID: {track_id} Label: {label} Confidence: {confidence:.2f}\n")
+                f"Detection: ID: {track_id} "
+                f"Label: {label} "
+                f"Confidence: {confidence:.2f}\n"
+            )
             detection_count += 1
         if user_data.use_frame:
-            cv2.putText(frame, f"Detections: {detection_count}",
-                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(
+                frame,
+                f"Detections: {detection_count}",
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 255, 0),
+                2,
+            )
             # Convert the frame to BGR
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             user_data.set_frame(frame)
