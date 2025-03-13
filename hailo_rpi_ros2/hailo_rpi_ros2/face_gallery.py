@@ -186,7 +186,7 @@ class Gallery:
             self._encode_hailo_face_recognition_result(matrix, name)
         )
 
-    def _replace_embedding_in_json(
+    def _append_embedding_in_json(
         self, old_name: str, new_name: str, new_embedding: np.ndarray
     ):
         if not os.path.exists(self.m_json_file_path):
@@ -206,12 +206,16 @@ class Gallery:
             ):
                 item["FaceRecognition"]["Name"] = new_name
                 if new_embedding is not None:
-                    item["FaceRecognition"]["Embeddings"][0]["HailoMatrix"][
-                        "data"
-                    ] = new_embedding.tolist()
-                    item["FaceRecognition"]["Embeddings"][0]["HailoMatrix"][
-                        "features"
-                    ] = new_embedding.shape[0]
+                    new_embedding_data = {
+                        "HailoMatrix": {
+                            "width": 1,
+                            "height": 1,
+                            "features": new_embedding.shape[0],
+                            "data": new_embedding.tolist()
+                        }
+                    }
+                    item["FaceRecognition"]["Embeddings"].append(new_embedding_data)
+
                 found = True
                 break
 
@@ -339,7 +343,7 @@ class Gallery:
             self._new_embedding_to_global_id(new_embedding, detection, track_id)
 
     def register_new_item(
-        self, name: str, detection: hailo.HailoDetection, replace: bool
+        self, name: str, detection: hailo.HailoDetection, append: bool
     ) -> GalleryUpdateStatus:
         track_ids = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
         if not track_ids:
@@ -361,10 +365,10 @@ class Gallery:
             return GalleryUpdateStatus.SUCCESS
         else:
             # Similar embedding found
-            if replace:
+            if append:
                 old_name = self.m_embedding_names[closest_global_id - 1]
                 self.m_embedding_names[closest_global_id - 1] = name
-                self._replace_embedding_in_json(old_name, name, new_embedding)
+                self._append_embedding_in_json(old_name, name, new_embedding)
                 self._update_embeddings_and_add_id_to_object(
                     new_embedding, detection, closest_global_id, track_id
                 )
@@ -376,4 +380,4 @@ class Gallery:
     def delete_item(self, name: str):
         # You are never get removed, just removes your name
         self.m_embedding_names[self.m_embedding_names.index(name)] = ""
-        self._replace_embedding_in_json(name, "", None)
+        self._append_embedding_in_json(name, "", None)

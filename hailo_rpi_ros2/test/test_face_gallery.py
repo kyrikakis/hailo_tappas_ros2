@@ -295,7 +295,7 @@ def test_add_item_to_existing_gallery(gallery_and_json):
 
     assert (
         gallery.register_new_item(
-            name="Stefanos", detection=mock_detection, replace=False
+            name="Stefanos", detection=mock_detection, append=False
         )
         == GalleryUpdateStatus.SUCCESS
     )
@@ -340,7 +340,7 @@ def test_add_two_items_to_empty_gallery(tmp_path):
         [],  # Additional call (if any)
     ]
 
-    gallery.register_new_item(name="Stefanos", detection=mock_detection, replace=False)
+    gallery.register_new_item(name="Stefanos", detection=mock_detection, append=False)
 
     # Mock detection with dissimilar embedding
     mock_detection2 = MagicMock()
@@ -357,7 +357,7 @@ def test_add_two_items_to_empty_gallery(tmp_path):
         [],  # Additional call (if any)
     ]
 
-    gallery.register_new_item(name="Max", detection=mock_detection2, replace=False)
+    gallery.register_new_item(name="Max", detection=mock_detection2, append=False)
 
     # Assertions
     calls = mock_detection.add_object.call_args_list
@@ -409,7 +409,7 @@ def test_replace_identical_item_to_empty_gallery(tmp_path):
 
     assert (
         gallery.register_new_item(
-            name="Stefanos", detection=mock_detection, replace=False
+            name="Stefanos", detection=mock_detection, append=False
         )
         == GalleryUpdateStatus.SUCCESS
     )
@@ -430,7 +430,7 @@ def test_replace_identical_item_to_empty_gallery(tmp_path):
     ]
 
     assert (
-        gallery.register_new_item(name="Max", detection=mock_detection2, replace=True)
+        gallery.register_new_item(name="Max", detection=mock_detection2, append=True)
         == GalleryUpdateStatus.SUCCESS
     )
 
@@ -460,7 +460,14 @@ def test_replace_identical_item_to_empty_gallery(tmp_path):
     assert len(data) == 1
     assert data[0]["FaceRecognition"]["Name"] == "Max"
     assert (
+        len(data[0]["FaceRecognition"]["Embeddings"]) == 2
+    ) 
+    assert (
         data[0]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
+        == identical_matrix.tolist()
+    )
+    assert (
+        data[0]["FaceRecognition"]["Embeddings"][1]["HailoMatrix"]["data"]
         == identical_matrix.tolist()
     )
 
@@ -487,7 +494,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
 
     assert (
         gallery.register_new_item(
-            name="Stefanos", detection=mock_detection, replace=False
+            name="Stefanos", detection=mock_detection, append=False
         )
         == GalleryUpdateStatus.SUCCESS
     )
@@ -509,7 +516,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
 
     assert (
         gallery.register_new_item(
-            name="Stefanos", detection=mock_detection2, replace=True
+            name="Stefanos", detection=mock_detection2, append=True
         )
         == GalleryUpdateStatus.SUCCESS
     )
@@ -540,7 +547,14 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
     assert len(data) == 1
     assert data[0]["FaceRecognition"]["Name"] == "Stefanos"
     assert (
+        len(data[0]["FaceRecognition"]["Embeddings"]) == 2
+    ) 
+    assert (
         data[0]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
+        == identical_matrix.tolist()
+    )
+    assert (
+        data[0]["FaceRecognition"]["Embeddings"][1]["HailoMatrix"]["data"]
         == identical_matrix.tolist()
     )
 
@@ -567,7 +581,7 @@ def test_add_identical_item_to_empty_gallery_item_exists(tmp_path):
 
     assert (
         gallery.register_new_item(
-            name="Stefanos", detection=mock_detection, replace=False
+            name="Stefanos", detection=mock_detection, append=False
         )
         == GalleryUpdateStatus.SUCCESS
     )
@@ -589,7 +603,7 @@ def test_add_identical_item_to_empty_gallery_item_exists(tmp_path):
 
     assert (
         gallery.register_new_item(
-            name="Stefanos", detection=mock_detection2, replace=False
+            name="Stefanos", detection=mock_detection2, append=False
         )
         == GalleryUpdateStatus.ITEM_ALREADY_EXISTS
     )
@@ -617,7 +631,7 @@ def test_delete_one_item(tmp_path):
 
     assert (
         gallery.register_new_item(
-            name="Stefanos", detection=mock_detection, replace=False
+            name="Stefanos", detection=mock_detection, append=False
         )
         == GalleryUpdateStatus.SUCCESS
     )
