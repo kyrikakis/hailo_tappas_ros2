@@ -23,7 +23,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 82B129927FA3303E &&
 
 # Dependencies for hailo-tappas-core
 RUN apt-get update && apt-get install -y python3 ffmpeg x11-utils python3-dev python3-pip \
-    python3-setuptools gcc-12 g++-12 python-gi-dev pkg-config libcairo2-dev \
+    gcc-12 g++-12 python-gi-dev pkg-config libcairo2-dev \
     libgirepository1.0-dev libgstreamer1.0-dev cmake \
     libgstreamer-plugins-base1.0-dev libzmq3-dev rsync git \
     libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base \
