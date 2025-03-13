@@ -21,27 +21,25 @@ from hailo_apps_infra.hailo_rpi_common import (
 )
 from hailo_rpi_ros2 import face_gallery
 import hailo
-from hailo_apps_infra.face_detection_pipeline import GStreamerFaceDetectionApp
 from typing import Callable
 from gi.repository import Gst
 from threading import Thread
 import cv2
+from hailo_rpi_ros2.face_recognition_pipeline import GStreamerFaceRecognitionApp
 
 
 class FaceRecognition(app_callback_class):
     def __init__(
-        self, gallery: face_gallery.Gallery, frame_callback: Callable[[cv2.UMat], None]
+        self,
+        input: str,
+        gallery: face_gallery.Gallery,
+        frame_callback: Callable[[cv2.UMat], None],
     ):
         app_callback_class.__init__(self)
         self.frame_callback = frame_callback
         self.gallery = gallery
-        self.gallery.load_local_gallery_from_json(
-            "/usr/local/lib/python3.11/dist-packages/resources/"
-            + "face_recognition_local_gallery.json"
-        )
 
-        app = GStreamerFaceDetectionApp(self.app_callback, self)
-
+        app = GStreamerFaceRecognitionApp(input, self.app_callback, self)
         self.detection_thread = Thread(target=app.run)
         self.detection_thread.start()
 
@@ -69,8 +67,7 @@ class FaceRecognition(app_callback_class):
         # If the user_data.use_frame is set to True, we can get the video frame from the buffer
         frame = None
         if (
-            user_data.use_frame
-            and format is not None
+            format is not None
             and width is not None
             and height is not None
         ):
@@ -100,7 +97,8 @@ class FaceRecognition(app_callback_class):
                 f"Confidence: {confidence:.2f}\n"
             )
             detection_count += 1
-        if user_data.use_frame:
+        if frame is not None:
+            # Get frame
             cv2.putText(
                 frame,
                 f"Detections: {detection_count}",

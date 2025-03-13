@@ -26,11 +26,11 @@ from hailo_rpi_ros2 import face_gallery
 def face_detection_instance():
     mock_frame_callback = MagicMock()
     with patch("argparse.ArgumentParser.parse_args", return_value=MagicMock()), patch(
-        "hailo_apps_infra.face_detection_pipeline." "GStreamerFaceDetectionApp"
+        "hailo_rpi_ros2.face_recognition_pipeline." "GStreamerFaceRecognitionApp"
     ) as mock_gstreamer_app, patch(
-        "hailo_apps_infra.gstreamer_app." "GStreamerApp.create_pipeline"
+        "hailo_rpi_ros2.gstreamer_app." "GStreamerApp.create_pipeline"
     ) as mock_base_create_pipeline, patch(
-        "hailo_apps_infra.gstreamer_app." "GStreamerApp.run"
+        "hailo_rpi_ros2.gstreamer_app." "GStreamerApp.run"
     ) as mock_base_run:
         mock_gstreamer_app_instance = mock_gstreamer_app.return_value
         mock_gstreamer_app_instance.run.return_value = None
@@ -38,6 +38,7 @@ def face_detection_instance():
         mock_base_create_pipeline.return_value = None
         mock_base_run.return_value = None
         face_detection = FaceRecognition(
+            'rpi',
             face_gallery.Gallery(similarity_thr=0.4, queue_size=100),
             mock_frame_callback,
         )

@@ -3,3 +3,9 @@ gstshark*
 core
 hailo_rpi_ros2/hailo_rpi_ros2/__pycache__/
 hailo_rpi_ros2/test/__pycache__/
+hailo_rpi_ros2/hailo_rpi_ros2/launch/__pycache__/
+hailo_rpi_ros2/hailo_rpi_ros2/resources/arcface_mobilefacenet_v1.hef
+hailo_rpi_ros2/hailo_rpi_ros2/resources/example.mp4
+hailo_rpi_ros2/hailo_rpi_ros2/resources/scrfd_10g.hef
+hailo_rpi_ros2/hailo_rpi_ros2/resources/yolov8m.hef
+hailo_rpi_ros2/hailo_rpi_ros2/resources/yolov8s_h8l.hef

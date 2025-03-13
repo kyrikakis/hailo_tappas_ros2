@@ -39,26 +39,40 @@ class HailoDetection(Node):
         self.declare_parameters(
             namespace="",
             parameters=[
+                ("face_recognition.input", Parameter.Type.STRING),
                 ("face_recognition.local_gallery_file", Parameter.Type.STRING),
                 ("face_recognition.similarity_threshhold", Parameter.Type.DOUBLE),
                 ("face_recognition.queue_size", Parameter.Type.INTEGER),
             ],
         )
-        # self.local_gallery_file = (
-        #     self.get_parameter("face_recognition.local_gallery_file").get_parameter_value().string_value
-        # )
-        # self.similarity_threshhold = (
-        #     self.get_parameter("face_recognition.similarity_threshhold")
-        #     .get_parameter_value()
-        #     .double_value
-        # )
-        # self.queue_size = (
-        #     self.get_parameter("face_recognition.queue_size").get_parameter_value().integer_value
-        # )
+        self.input = (
+            self.get_parameter("face_recognition.input")
+            .get_parameter_value()
+            .string_value
+        )
+        self.local_gallery_file = (
+            self.get_parameter("face_recognition.local_gallery_file")
+            .get_parameter_value()
+            .string_value
+        )
+        self.similarity_threshhold = (
+            self.get_parameter("face_recognition.similarity_threshhold")
+            .get_parameter_value()
+            .double_value
+        )
+        self.queue_size = (
+            self.get_parameter("face_recognition.queue_size")
+            .get_parameter_value()
+            .integer_value
+        )
 
-        gallery = face_gallery.Gallery()
+        gallery = face_gallery.Gallery(
+            json_file_path=self.local_gallery_file,
+            similarity_thr=self.similarity_threshhold,
+            queue_size=self.queue_size,
+        )
         self.face_recognition = face_recognition.FaceRecognition(
-            gallery, self.frame_callback
+            self.input, gallery, self.frame_callback
         )
 
     def add_person_callback(

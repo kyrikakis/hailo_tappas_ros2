@@ -32,6 +32,7 @@ def generate_launch_description():
         name="hailo_detection",
         output="screen",
         parameters=[hailo_params],
+        # prefix=f"python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client",
     )
 
     return LaunchDescription([hailo_detection_node])

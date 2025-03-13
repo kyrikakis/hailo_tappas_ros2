@@ -19,6 +19,10 @@ setup(
             os.path.join("share", package_name, "config"),
             glob(os.path.join(package_name, "config", "*")),
         ),
+        (
+            os.path.join("share", package_name, "resources"),
+            glob(os.path.join(package_name, "resources", "*")),
+        ),
     ],
     install_requires=["setuptools"],
     zip_safe=True,

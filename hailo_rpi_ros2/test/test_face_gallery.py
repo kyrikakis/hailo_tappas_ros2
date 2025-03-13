@@ -163,8 +163,7 @@ def gallery_and_json(tmp_path, alon_face_matrix, max_face_matrix):
         json.dump(test_data, f)
 
     # Initialize Gallery and load the test JSON
-    gallery = Gallery()
-    gallery.load_local_gallery_from_json(str(test_json_path))
+    gallery = Gallery(json_file_path=test_json_path)
 
     yield gallery, test_json_path
 

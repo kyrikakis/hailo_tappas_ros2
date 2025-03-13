@@ -71,6 +71,8 @@ class Gallery:
         self.m_queue_size: int = queue_size
         self.m_json_file_path: Optional[str] = json_file_path
 
+        self._load_local_gallery_from_json(self.m_json_file_path)
+
     @staticmethod
     def _get_distance(embeddings_queue: List[np.ndarray], matrix: np.ndarray) -> float:
         new_embedding = gallery_get_xtensor(matrix)
@@ -162,6 +164,19 @@ class Gallery:
                         f"Error decoding matrix with height: {height}, "
                         f"width: {width}, features: {features}"
                     )
+
+    def _load_local_gallery_from_json(self, file_path: str):
+        if not os.path.exists(file_path):
+            return
+        self.m_json_file_path = file_path
+        with open(file_path, "r") as f:
+            data = json.load(f)
+        roi = hailo.HailoROI(hailo.HailoBBox(0.0, 0.0, 1.0, 1.0))
+        self._decode_hailo_face_recognition_result(data, roi, self.m_embedding_names)
+        matrix_objs = roi.get_objects_typed(hailo.HAILO_MATRIX)
+        for matrix in matrix_objs:
+            global_id = self._create_new_global_id()
+            self._add_embedding(global_id, matrix.get_data())
 
     def _write_to_json_file(self, document: dict):
         # Create the file if it doesn't exist
@@ -316,19 +331,6 @@ class Gallery:
             new_embedding, detection, global_id, track_id
         )
         self._handle_local_embedding(detection, global_id)
-
-    def load_local_gallery_from_json(self, file_path: str):
-        if not os.path.exists(file_path):
-            raise RuntimeError("Gallery JSON file does not exist")
-        self.m_json_file_path = file_path
-        with open(file_path, "r") as f:
-            data = json.load(f)
-        roi = hailo.HailoROI(hailo.HailoBBox(0.0, 0.0, 1.0, 1.0))
-        self._decode_hailo_face_recognition_result(data, roi, self.m_embedding_names)
-        matrix_objs = roi.get_objects_typed(hailo.HAILO_MATRIX)
-        for matrix in matrix_objs:
-            global_id = self._create_new_global_id()
-            self._add_embedding(global_id, matrix.get_data())
 
     def update(self, detections: List[hailo.HailoDetection]):
         for detection in detections:
