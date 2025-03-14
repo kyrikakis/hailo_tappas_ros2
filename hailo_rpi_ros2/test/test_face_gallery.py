@@ -385,6 +385,29 @@ def test_add_two_items_to_empty_gallery(tmp_path):
     assert data[0]["FaceRecognition"]["Name"] == "Stefanos"
     assert data[1]["FaceRecognition"]["Name"] == "Max"
 
+def test_update_with_no_json_provided():
+    gallery = Gallery()
+
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = generate_realistic_embedding()
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [],  # No classifications
+        [],  # Additional call (if any)
+    ]
+
+    # Call the public update method
+    gallery.update([mock_detection])
+
+    # Assertions
+    mock_detection.add_object.assert_not_called()
+
 
 def test_replace_identical_item_to_empty_gallery(tmp_path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))

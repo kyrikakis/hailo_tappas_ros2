@@ -23,6 +23,7 @@ import cv2
 from rclpy import Parameter
 from hailo_rpi_ros2.face_recognition_pipeline import GStreamerFaceRecognitionApp
 from threading import Thread
+import os
 
 
 class HailoDetection(Node):
@@ -68,8 +69,11 @@ class HailoDetection(Node):
             .integer_value
         )
 
+        gallery_file_path = self._get_absolute_file_path_in_build_dir(
+            self.local_gallery_file
+        )
         gallery = face_gallery.Gallery(
-            json_file_path=self.local_gallery_file,
+            json_file_path=gallery_file_path,
             similarity_thr=self.similarity_threshhold,
             queue_size=self.queue_size,
         )
@@ -84,6 +88,25 @@ class HailoDetection(Node):
 
         self.detection_thread = Thread(target=gstreamer_app.run)
         self.detection_thread.start()
+
+    def _get_absolute_file_path_in_build_dir(self, file: str) -> str:
+        # Get the directory of the current Python file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Construct the absolute file path
+        absolute_file_path = os.path.join(current_dir, "resources", file)
+
+        try:
+            # Read the file content
+            with open(absolute_file_path, "r") as file:
+                file_content = file.read()
+
+            # Process the file content
+            self.get_logger().info(f"File found: {absolute_file_path}")
+            return absolute_file_path
+        except FileNotFoundError as e:
+            self.get_logger().error(f"File not found: {absolute_file_path}")
+            raise e
 
     def add_person_callback(
         self, request: AddPerson.Request, response: AddPerson.Response
@@ -110,9 +133,6 @@ def main(args=None):
     detection = HailoDetection()
 
     rclpy.spin(detection)
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
     if hasattr(detection, "detection_thread") and detection.detection_thread.is_alive():
         detection.detection_thread.join()  # Wait for the thread to finish
         print("Detection thread joined.")

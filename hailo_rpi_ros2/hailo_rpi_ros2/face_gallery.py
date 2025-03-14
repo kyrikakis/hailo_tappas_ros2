@@ -333,16 +333,17 @@ class Gallery:
         self._handle_local_embedding(detection, global_id)
 
     def update(self, detections: List[hailo.HailoDetection]):
-        for detection in detections:
-            track_ids = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
-            if not track_ids:
-                continue
-            track_id = track_ids[0].get_id()
-            new_embedding = self._get_embedding_matrix(detection)
-            if new_embedding is None:
-                # No embedding exists in this detection object, continue to next detection
-                continue
-            self._new_embedding_to_global_id(new_embedding, detection, track_id)
+        if self.m_embeddings:
+            for detection in detections:
+                track_ids = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
+                if not track_ids:
+                    continue
+                track_id = track_ids[0].get_id()
+                new_embedding = self._get_embedding_matrix(detection)
+                if new_embedding is None:
+                    # No embedding exists in this detection object, continue to next detection
+                    continue
+                self._new_embedding_to_global_id(new_embedding, detection, track_id)
 
     def register_new_item(
         self, name: str, detection: hailo.HailoDetection, append: bool
