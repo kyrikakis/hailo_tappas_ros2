@@ -23,31 +23,18 @@ from hailo_rpi_ros2 import face_gallery
 import hailo
 from typing import Callable
 from gi.repository import Gst
-from threading import Thread
 import cv2
-from hailo_rpi_ros2.face_recognition_pipeline import GStreamerFaceRecognitionApp
 
 
 class FaceRecognition(app_callback_class):
     def __init__(
         self,
-        input: str,
         gallery: face_gallery.Gallery,
         frame_callback: Callable[[cv2.UMat], None],
     ):
         app_callback_class.__init__(self)
         self.frame_callback = frame_callback
         self.gallery = gallery
-
-        app = GStreamerFaceRecognitionApp(input, self.app_callback, self)
-        self.detection_thread = Thread(target=app.run)
-        self.detection_thread.start()
-
-    def __del__(self):
-        """Destructor to ensure the thread is joined when the object is destroyed."""
-        if hasattr(self, "detection_thread") and self.detection_thread.is_alive():
-            self.detection_thread.join()  # Wait for the thread to finish
-            print("Detection thread joined.")
 
     # This is the callback function that will be called when data is available from the pipeline
     def app_callback(self, pad, info, user_data):

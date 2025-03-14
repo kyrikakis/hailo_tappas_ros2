@@ -21,6 +21,8 @@ from hailo_rpi_ros2 import face_recognition
 from hailo_rpi_ros2 import face_gallery
 import cv2
 from rclpy import Parameter
+from hailo_rpi_ros2.face_recognition_pipeline import GStreamerFaceRecognitionApp
+from threading import Thread
 
 
 class HailoDetection(Node):
@@ -71,9 +73,17 @@ class HailoDetection(Node):
             similarity_thr=self.similarity_threshhold,
             queue_size=self.queue_size,
         )
+
         self.face_recognition = face_recognition.FaceRecognition(
-            self.input, gallery, self.frame_callback
+            gallery, self.frame_callback
         )
+
+        gstreamer_app = GStreamerFaceRecognitionApp(
+            self.input, self.face_recognition.app_callback, self.face_recognition
+        )
+
+        self.detection_thread = Thread(target=gstreamer_app.run)
+        self.detection_thread.start()
 
     def add_person_callback(
         self, request: AddPerson.Request, response: AddPerson.Response
@@ -103,7 +113,9 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    detection.detection_thread.join()
+    if hasattr(detection, "detection_thread") and detection.detection_thread.is_alive():
+        detection.detection_thread.join()  # Wait for the thread to finish
+        print("Detection thread joined.")
     detection.destroy_node()
     rclpy.shutdown()
 

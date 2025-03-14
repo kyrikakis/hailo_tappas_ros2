@@ -57,11 +57,13 @@ COPY . /workspaces/src/hailo_rpi_ros2/
 RUN cp /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
 
 # Install requirements and build
-RUN source /opt/ros/jazzy/setup.bash && cd /workspaces/src/hailo_rpi_ros2 && \
+RUN source /opt/ros/jazzy/setup.bash && \
+    cd /workspaces/src/hailo_rpi_ros2 && \
     pip install -r requirements.txt --break-system-packages && \
     ./download_resources.sh && \
+    cd /workspaces && \
     colcon build --symlink-install && \
-    colcon test --event-handlers console_direct+
+    colcon test --return-code-on-test-failure
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
