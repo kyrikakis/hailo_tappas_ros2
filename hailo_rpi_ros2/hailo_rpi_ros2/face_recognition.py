@@ -19,7 +19,9 @@ from hailo_apps_infra.hailo_rpi_common import (
     get_numpy_from_buffer,
     app_callback_class,
 )
-from hailo_rpi_ros2 import face_gallery
+from hailo_rpi_ros2.face_gallery import (
+    Gallery,
+)
 import hailo
 from typing import Callable
 from gi.repository import Gst
@@ -29,7 +31,7 @@ import cv2
 class FaceRecognition(app_callback_class):
     def __init__(
         self,
-        gallery: face_gallery.Gallery,
+        gallery: Gallery,
         frame_callback: Callable[[cv2.UMat], None],
     ):
         app_callback_class.__init__(self)
@@ -53,11 +55,7 @@ class FaceRecognition(app_callback_class):
 
         # If the user_data.use_frame is set to True, we can get the video frame from the buffer
         frame = None
-        if (
-            format is not None
-            and width is not None
-            and height is not None
-        ):
+        if format is not None and width is not None and height is not None:
             # Get video frame
             frame = get_numpy_from_buffer(buffer, format, width, height)
 
@@ -100,5 +98,5 @@ class FaceRecognition(app_callback_class):
             user_data.set_frame(frame)
             self.frame_callback(frame)
 
-        print(string_to_print)
+        # print(string_to_print)
         return Gst.PadProbeReturn.OK

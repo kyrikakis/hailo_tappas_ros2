@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "Python: Attach to ROS 2 Node",
-            "type": "python",
+            "type": "debugpy",
             "request": "attach",
             "connect": {
                 "host": "localhost",
@@ -14,7 +14,9 @@
                     "localRoot": "${workspaceFolder}",
                     "remoteRoot": "${workspaceFolder}"
                 }
-            ]
+            ],
+            "justMyCode": false,
+            "subProcess": true,
         },
         {
             "name": "Python Debugger: Current File with Arguments",

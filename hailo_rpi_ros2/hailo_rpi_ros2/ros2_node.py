@@ -18,7 +18,10 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image, CompressedImage
 from hailo_rpi_ros2_interfaces.srv import AddPerson
 from hailo_rpi_ros2 import face_recognition
-from hailo_rpi_ros2 import face_gallery
+from hailo_rpi_ros2.face_gallery import (
+    Gallery,
+    GalleryAppendStatus,
+)
 import cv2
 from rclpy import Parameter
 from hailo_rpi_ros2.face_recognition_pipeline import GStreamerFaceRecognitionApp
@@ -72,14 +75,14 @@ class HailoDetection(Node):
         gallery_file_path = self._get_absolute_file_path_in_build_dir(
             self.local_gallery_file
         )
-        gallery = face_gallery.Gallery(
+        self.gallery = Gallery(
             json_file_path=gallery_file_path,
             similarity_thr=self.similarity_threshhold,
             queue_size=self.queue_size,
         )
 
         self.face_recognition = face_recognition.FaceRecognition(
-            gallery, self.frame_callback
+            self.gallery, self.frame_callback
         )
 
         gstreamer_app = GStreamerFaceRecognitionApp(
@@ -99,7 +102,7 @@ class HailoDetection(Node):
         try:
             # Read the file content
             with open(absolute_file_path, "r") as file:
-                file_content = file.read()
+                file.read()
 
             # Process the file content
             self.get_logger().info(f"File found: {absolute_file_path}")
@@ -112,8 +115,23 @@ class HailoDetection(Node):
         self, request: AddPerson.Request, response: AddPerson.Response
     ):
         self.get_logger().info(f"Incoming request: Add person {request.name}")
-        response.success = True
-        response.message = "Person added"
+        status = self.gallery.append_new_item(request.name, True)
+        response.success = False
+        response.message = "Failed"
+        match status:
+            case GalleryAppendStatus.SUCCESS:
+                response.success = True
+                response.message = "Person added"
+            case GalleryAppendStatus.NO_FACES_FOUND:
+                response.success = False
+                response.message = "No faces found"
+            case GalleryAppendStatus.MULTIPLE_FACES_FOUND:
+                response.success = False
+                response.message = "Multiple faces found"
+            case _:
+                response.success = False
+                response.message = "Failed"
+
         return response
 
     def frame_callback(self, frame: cv2.UMat):

@@ -3,5 +3,5 @@ hailo_detection:
       face_recognition:
         input: rpi
         local_gallery_file: local_gallery.json
-        similarity_threshhold: 0.40
+        similarity_threshhold: 0.35
         queue_size: 100
