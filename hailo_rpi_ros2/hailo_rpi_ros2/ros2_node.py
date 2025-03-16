@@ -44,7 +44,7 @@ class HailoDetection(Node):
 
         self.create_service(SaveFace, "~/save_face", self.add_face_callback)
 
-        self.create_service(DeleteFace, "~/delete_face", self.add_face_callback)
+        self.create_service(DeleteFace, "~/delete_face", self.delete_face_callback)
 
         self.declare_parameters(
             namespace="",
@@ -156,7 +156,7 @@ class HailoDetection(Node):
         self, request: DeleteFace.Request, response: DeleteFace.Response
     ):
         self.get_logger().info(f"Incoming request: Delete face {request.name}")
-        status = self.gallery.delete_item_by_name(request.name, True)
+        status = self.gallery.delete_item_by_name(request.name)
         match status:
             case GalleryDeletionStatus.SUCCESS:
                 response.result = 0
