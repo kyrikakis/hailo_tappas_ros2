@@ -16,11 +16,15 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CompressedImage
-from hailo_rpi_ros2_interfaces.srv import AddPerson
+from hailo_rpi_ros2_interfaces.srv import (
+    SaveFace,
+    DeleteFace,
+)
 from hailo_rpi_ros2 import face_recognition
 from hailo_rpi_ros2.face_gallery import (
     Gallery,
     GalleryAppendStatus,
+    GalleryDeletionStatus,
 )
 import cv2
 from rclpy import Parameter
@@ -38,9 +42,9 @@ class HailoDetection(Node):
         )
         self.image_publisher_ = self.create_publisher(Image, "/camera/image_raw", 10)
 
-        self.srv = self.create_service(
-            AddPerson, "~/add_person", self.add_person_callback
-        )
+        self.create_service(SaveFace, "~/save_face", self.add_face_callback)
+
+        self.create_service(DeleteFace, "~/delete_face", self.add_face_callback)
 
         self.declare_parameters(
             namespace="",
@@ -111,28 +115,57 @@ class HailoDetection(Node):
             self.get_logger().error(f"File not found: {absolute_file_path}")
             raise e
 
-    def add_person_callback(
-        self, request: AddPerson.Request, response: AddPerson.Response
-    ):
-        self.get_logger().info(f"Incoming request: Add person {request.name}")
-        status = self.gallery.append_new_item(request.name, True)
-        response.success = False
-        response.message = "Failed"
+    def add_face_callback(self, request: SaveFace.Request, response: SaveFace.Response):
+        self.get_logger().info(f"Incoming request: Add face {request.name}")
+        status = self.gallery.append_new_item(request.name, request.append)
         match status:
             case GalleryAppendStatus.SUCCESS:
                 response.result = 0
                 response.message = "Person added"
-            case GalleryAppendStatus.ITEM_ALREADY_EXISTS:
+            case GalleryAppendStatus.FACE_EXISTS_WITH_IDENTICAL_NAME:
                 response.result = 1
-                response.message = "Name exists"
+                response.message = (
+                    "Similar embedding found with identical name. Aborted "
+                    "Consider calling with append=true"
+                )
+            case GalleryAppendStatus.FACE_EXISTS_WITH_DIFFERENT_NAME:
+                response.result = 1
+                response.message = (
+                    "Similar embedding found with different name. Aborted "
+                    "Consider calling with append=true"
+                )
+            case GalleryAppendStatus.NAME_EXISTS_WITH_NON_SIMILAR_FACE:
+                response.result = 1
+                response.message = (
+                    "The name exists but no similar embedding found. Aborted "
+                    "Consider calling with append=true"
+                )
             case GalleryAppendStatus.MULTIPLE_FACES_FOUND:
                 response.success = 2
-                response.message = "Multiple faces found"
+                response.message = "Error: Multiple faces found"
             case GalleryAppendStatus.NO_FACES_FOUND:
                 response.result = 3
-                response.message = "No faces found"
+                response.message = "Error: No faces found"
             case _:
                 response.success = 4
+                response.message = "Failed, see the logs for more details"
+
+        return response
+
+    def delete_face_callback(
+        self, request: DeleteFace.Request, response: DeleteFace.Response
+    ):
+        self.get_logger().info(f"Incoming request: Delete face {request.name}")
+        status = self.gallery.delete_item_by_name(request.name, True)
+        match status:
+            case GalleryDeletionStatus.SUCCESS:
+                response.result = 0
+                response.message = "Face deleted"
+            case GalleryDeletionStatus.NOT_FOUND:
+                response.result = 1
+                response.message = "Name not found"
+            case _:
+                response.success = 2
                 response.message = "Failed, see the logs for more details"
 
         return response

@@ -1,0 +1,7 @@
+string name
+---
+# 0: SUCCESS,
+# 1: NOT_FOUND,
+# 2: ERROR
+uint8 result
+string message

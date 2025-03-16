@@ -1,6 +1,0 @@
-string name
-bool append
----
-# 0: SUCCESS, 1: ITEM_ALREADY_EXISTS, 2: MULTIPLE_FACES_FOUND, 3: NO_FACES_FOUND, 4: ERROR
-uint8 result
-string message

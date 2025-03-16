@@ -624,7 +624,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path: Pa
     )
 
 
-def test_add_identical_embedding_item_exists(
+def test_add_similar_embedding_with_identical_name_item_exists(
     gallery_and_json, max_face_matrix
 ):
     gallery, _ = gallery_and_json
@@ -641,7 +641,7 @@ def test_add_identical_embedding_item_exists(
         [mock_unique_id],
         [mock_matrix],
         [mock_unique_id],
-        [], # No classifications
+        [],  # No classifications
         [mock_unique_id],
         [mock_matrix],
     ]
@@ -649,8 +649,38 @@ def test_add_identical_embedding_item_exists(
     gallery.update([mock_detection])
     assert (
         gallery.append_new_item(name="Max", append=False)
-        == GalleryAppendStatus.ITEM_ALREADY_EXISTS
+        == GalleryAppendStatus.FACE_EXISTS_WITH_IDENTICAL_NAME
     )
+
+
+def test_add_similar_embedding_with_different_name_item_exists(
+    gallery_and_json, max_face_matrix
+):
+    gallery, _ = gallery_and_json
+
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = max_face_matrix
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [mock_unique_id],
+        [],  # No classifications
+        [mock_unique_id],
+        [mock_matrix],
+    ]
+
+    gallery.update([mock_detection])
+    assert (
+        gallery.append_new_item(name="Sefanos", append=False)
+        == GalleryAppendStatus.FACE_EXISTS_WITH_DIFFERENT_NAME
+    )
+
 
 def test_add_distant_embedding_identical_name_item_exists(
     gallery_and_json, max_face_matrix
@@ -675,8 +705,9 @@ def test_add_distant_embedding_identical_name_item_exists(
     gallery.update([mock_detection])
     assert (
         gallery.append_new_item(name="Max", append=False)
-        == GalleryAppendStatus.ITEM_ALREADY_EXISTS
+        == GalleryAppendStatus.NAME_EXISTS_WITH_NON_SIMILAR_FACE
     )
+
 
 def test_add_item_to_empty_gallery_no_faces_found(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))

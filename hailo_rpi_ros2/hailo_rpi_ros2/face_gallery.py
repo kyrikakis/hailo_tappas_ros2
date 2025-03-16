@@ -25,15 +25,19 @@ from enum import Enum
 
 class GalleryAppendStatus(Enum):
     SUCCESS = 0
-    ITEM_ALREADY_EXISTS = 1
-    MULTIPLE_FACES_FOUND = 2
-    NO_FACES_FOUND = 3
-    ERROR = 4
+    FACE_EXISTS_WITH_IDENTICAL_NAME = 1
+    FACE_EXISTS_WITH_DIFFERENT_NAME = 2
+    NAME_EXISTS_WITH_NON_SIMILAR_FACE = 3
+    MULTIPLE_FACES_FOUND = 4
+    NO_FACES_FOUND = 5
+    ERROR = 6
+
 
 class GalleryDeletionStatus(Enum):
     SUCCESS = 0
     NOT_FOUND = 1
     ERROR = 2
+
 
 # Helper functions
 def gallery_get_xtensor(matrix: np.ndarray) -> np.ndarray:
@@ -239,7 +243,7 @@ class Gallery:
                             "data": new_embedding,
                         }
                     }
-                    item["FaceRecognition"]["Embeddings"].append(new_embedding_data)    
+                    item["FaceRecognition"]["Embeddings"].append(new_embedding_data)
                 found = True
                 break
 
@@ -276,8 +280,7 @@ class Gallery:
             classification_type = "recognition_result"
             existing_recognitions = [
                 obj
-                for obj 
-                in detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
+                for obj in detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
                 if obj.get_classification_type() == classification_type
             ]
             name = self.m_embedding_names[global_id]
@@ -295,8 +298,7 @@ class Gallery:
         self.tracking_id_to_global_id[unique_id] = global_id
         global_ids = [
             obj
-            for obj 
-            in detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
+            for obj in detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
             if obj.get_mode() == hailo.GLOBAL_ID
         ]
         if not global_ids:
@@ -377,10 +379,10 @@ class Gallery:
         if min_distance > self.m_similarity_thr:
             # If no similar embedding found
             if name in self.m_embedding_names:
-                if(append):
+                if append:
                     global_id = self.m_embedding_names.index(name)
                 else:
-                    return GalleryAppendStatus.ITEM_ALREADY_EXISTS
+                    return GalleryAppendStatus.NAME_EXISTS_WITH_NON_SIMILAR_FACE
             else:
                 global_id = self._create_new_global_id()
                 self.m_embedding_names.append(name)
@@ -398,7 +400,10 @@ class Gallery:
                 self._append_embedding_in_json(old_name, name, new_embedding)
                 return GalleryAppendStatus.SUCCESS
             else:
-                return GalleryAppendStatus.ITEM_ALREADY_EXISTS
+                if name in self.m_embedding_names:
+                    return GalleryAppendStatus.FACE_EXISTS_WITH_IDENTICAL_NAME
+                else:
+                    return GalleryAppendStatus.FACE_EXISTS_WITH_DIFFERENT_NAME
 
     def delete_item_by_name(self, name: str) -> GalleryDeletionStatus:
         if name in self.m_embedding_names:
@@ -423,16 +428,19 @@ class Gallery:
             # Remove from JSON file
             if self.m_json_file_path and os.path.exists(self.m_json_file_path):
                 try:
-                    with open(self.m_json_file_path, 'r') as f:
+                    with open(self.m_json_file_path, "r") as f:
                         data = json.load(f)
-                    updated_data = [item for item in data if item.get('FaceRecognition', {}).get('Name') != name]
-                    with open(self.m_json_file_path, 'w') as f:
+                    updated_data = [
+                        item
+                        for item in data
+                        if item.get("FaceRecognition", {}).get("Name") != name
+                    ]
+                    with open(self.m_json_file_path, "w") as f:
                         json.dump(updated_data, f, indent=4)
                 except (FileNotFoundError, json.JSONDecodeError, IOError) as e:
-                    print(f"Error updating JSON file: {e}")
+                    print(f"Gallery Error updating JSON file: {e}")
                     return GalleryDeletionStatus.ERROR
 
             return GalleryDeletionStatus.SUCCESS
         else:
             return GalleryDeletionStatus.NOT_FOUND
-

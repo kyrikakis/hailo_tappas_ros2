@@ -1,0 +1,12 @@
+string name
+bool append
+---
+# 0: SUCCESS, 
+# 1: FACE_EXISTS_WITH_IDENTICAL_NAME, 
+# 2: FACE_EXISTS_WITH_DIFFERENT_NAME,
+# 3: NAME_EXISTS_WITH_NON_SIMILAR_FACE 
+# 4: MULTIPLE_FACES_FOUND, 
+# 5: NO_FACES_FOUND, 
+# 6: ERROR
+uint8 result
+string message
