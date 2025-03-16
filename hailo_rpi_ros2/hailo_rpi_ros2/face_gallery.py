@@ -31,6 +31,10 @@ class GalleryAppendStatus(Enum):
     MULTIPLE_FACES_FOUND = 4
     NO_FACES_FOUND = 5
 
+class GalleryDeletionStatus(Enum):
+    SUCCESS = 0
+    NOT_FOUND = 1
+    ERROR = 2
 
 # Helper functions
 def gallery_get_xtensor(matrix: np.ndarray) -> np.ndarray:
@@ -236,17 +240,7 @@ class Gallery:
                             "data": new_embedding,
                         }
                     }
-                    item["FaceRecognition"]["Embeddings"].append(new_embedding_data)
-                    # item["FaceRecognition"]["Embeddings"][0] = (
-                    #     {  # replace the first element.
-                    #         "HailoMatrix": {
-                    #             "width": 1,
-                    #             "height": 1,
-                    #             "features": 512,
-                    #             "data": new_embedding,
-                    #         }
-                    #     }
-                    # )
+                    item["FaceRecognition"]["Embeddings"].append(new_embedding_data)    
                 found = True
                 break
 
@@ -401,7 +395,39 @@ class Gallery:
             else:
                 return GalleryAppendStatus.ITEM_ALREADY_EXISTS
 
-    def delete_item(self, name: str):
-        # You are never get removed, just removes your name
-        self.m_embedding_names[self.m_embedding_names.index(name)] = ""
-        self._append_embedding_in_json(name, "", None)
+    def delete_item_by_name(self, name: str) -> GalleryDeletionStatus:
+        if name in self.m_embedding_names:
+            index_to_remove = self.m_embedding_names.index(name)
+
+            # Remove from m_embedding_names
+            del self.m_embedding_names[index_to_remove]
+
+            # Remove from m_embeddings
+            del self.m_embeddings[index_to_remove]
+
+            # Update tracking_id_to_global_id (adjust global IDs)
+            new_tracking_id_to_global_id = {}
+            for track_id, global_id in self.tracking_id_to_global_id.items():
+                if global_id != index_to_remove:
+                    if global_id > index_to_remove:
+                        new_tracking_id_to_global_id[track_id] = global_id - 1
+                    else:
+                        new_tracking_id_to_global_id[track_id] = global_id
+            self.tracking_id_to_global_id = new_tracking_id_to_global_id
+
+            # Remove from JSON file
+            if self.m_json_file_path and os.path.exists(self.m_json_file_path):
+                try:
+                    with open(self.m_json_file_path, 'r') as f:
+                        data = json.load(f)
+                    updated_data = [item for item in data if item.get('FaceRecognition', {}).get('Name') != name]
+                    with open(self.m_json_file_path, 'w') as f:
+                        json.dump(updated_data, f, indent=4)
+                except (FileNotFoundError, json.JSONDecodeError, IOError) as e:
+                    print(f"Error updating JSON file: {e}")
+                    return GalleryDeletionStatus.ERROR
+
+            return GalleryDeletionStatus.SUCCESS
+        else:
+            return GalleryDeletionStatus.NOT_FOUND
+

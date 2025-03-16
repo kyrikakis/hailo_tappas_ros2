@@ -13,11 +13,14 @@
 # limitations under the License.
 # !/usr/bin/env python3
 
+from pathlib import Path
+from typing import Any
 import pytest
 import numpy as np
 from hailo_rpi_ros2.face_gallery import (
     Gallery,
     GalleryAppendStatus,
+    GalleryDeletionStatus,
     gallery_one_dim_dot_product,
     gallery_get_xtensor,
 )
@@ -154,7 +157,7 @@ def max_face_matrix():
 
 # Fixture for the Gallery object and test JSON file
 @pytest.fixture
-def gallery_and_json(tmp_path, alon_face_matrix, max_face_matrix):
+def gallery_and_json(tmp_path: Path, alon_face_matrix: np.ndarray, max_face_matrix: np.ndarray):
     # Create a test JSON file
     test_json_path = tmp_path / "test_gallery.json"
     test_data = [
@@ -202,7 +205,7 @@ def gallery_and_json(tmp_path, alon_face_matrix, max_face_matrix):
 
 
 # Test Case 1: Track ID already exists (and local embeddings loaded)
-def test_alon_face_found(gallery_and_json, alon_face_matrix):
+def test_alon_face_found(gallery_and_json: tuple[Gallery, Any], alon_face_matrix: np.ndarray):
     gallery, _ = gallery_and_json
 
     # Mock detection with existing track ID
@@ -233,7 +236,7 @@ def test_alon_face_found(gallery_and_json, alon_face_matrix):
     assert calls[1][0][0].get_label() == "Alon"
 
 
-def test_max_face_found(gallery_and_json, max_face_matrix):
+def test_max_face_found(gallery_and_json: tuple[Gallery, Any], max_face_matrix: np.ndarray):
     gallery, _ = gallery_and_json
 
     # Mock detection with existing track ID
@@ -264,7 +267,7 @@ def test_max_face_found(gallery_and_json, max_face_matrix):
     assert calls[1][0][0].get_label() == "Max"
 
 
-def test_update_no_embedding(gallery_and_json):
+def test_update_no_embedding(gallery_and_json: tuple[Gallery, Any]):
     gallery, _ = gallery_and_json
 
     # Mock detection with no embedding
@@ -302,7 +305,7 @@ def test_update_with_no_json_provided():
     mock_detection.add_object.assert_not_called()
 
 
-def test_update_dissimilar_embedding(gallery_and_json):
+def test_update_dissimilar_embedding(gallery_and_json: tuple[Gallery, Any]):
     gallery, _ = gallery_and_json
 
     # Mock detection with dissimilar embedding
@@ -328,7 +331,7 @@ def test_update_dissimilar_embedding(gallery_and_json):
     assert 4 not in gallery.tracking_id_to_global_id
 
 
-def test_add_item_to_existing_gallery(gallery_and_json):
+def test_add_item_to_existing_gallery(gallery_and_json: tuple[Gallery, Any]):
     gallery, test_json_path = gallery_and_json
     embedding = generate_realistic_embedding()
     # Mock detection with dissimilar embedding
@@ -375,7 +378,7 @@ def test_add_item_to_existing_gallery(gallery_and_json):
     )
 
 
-def test_add_two_items_to_empty_gallery(tmp_path):
+def test_add_two_items_to_empty_gallery(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     # Mock detection with dissimilar embedding
@@ -442,7 +445,7 @@ def test_add_two_items_to_empty_gallery(tmp_path):
     assert data[1]["FaceRecognition"]["Name"] == "Max"
 
 
-def test_replace_identical_item_to_empty_gallery(tmp_path):
+def test_replace_identical_item_to_empty_gallery(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
@@ -528,7 +531,7 @@ def test_replace_identical_item_to_empty_gallery(tmp_path):
     )
 
 
-def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
+def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
@@ -615,7 +618,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path):
     )
 
 
-def test_add_identical_item_to_empty_gallery_item_exists(tmp_path):
+def test_add_identical_item_to_empty_gallery_item_exists(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
@@ -669,7 +672,7 @@ def test_add_identical_item_to_empty_gallery_item_exists(tmp_path):
     )
 
 
-def test_add_item_to_empty_gallery_no_faces_found(tmp_path):
+def test_add_item_to_empty_gallery_no_faces_found(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     assert (
@@ -678,7 +681,7 @@ def test_add_item_to_empty_gallery_no_faces_found(tmp_path):
     )
 
 
-def test_add_item_to_empty_gallery_multiple_faces_found(tmp_path):
+def test_add_item_to_empty_gallery_multiple_faces_found(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     # Mock detection with dissimilar embedding
@@ -706,7 +709,7 @@ def test_add_item_to_empty_gallery_multiple_faces_found(tmp_path):
     )
 
 
-def test_delete_one_item(tmp_path):
+def test_delete_one_item(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
@@ -729,28 +732,40 @@ def test_delete_one_item(tmp_path):
     ]
 
     gallery.update([mock_detection])
+    assert len(gallery.tracking_id_to_global_id) == 0
     assert (
         gallery.append_new_item(name="Stefanos", append=False)
         == GalleryAppendStatus.SUCCESS
     )
-
-    gallery.delete_item("Stefanos")
-
+    assert len(gallery.tracking_id_to_global_id) == 1
+    assert (
+        gallery.delete_item_by_name("Stefanos")
+        == GalleryDeletionStatus.SUCCESS
+    )
     # Assertions
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 1
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
     assert calls[0][0][0].get_id() == 0
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
-    assert gallery.tracking_id_to_global_id[11] == 0
+    assert len(gallery.tracking_id_to_global_id) == 0
 
     # Check if the file was created and written to
     assert os.path.exists(str(tmp_path / "test.json"))
     with open(str(tmp_path / "test.json"), "r") as f:
         data = json.load(f)
-    assert len(data) == 1
-    assert data[0]["FaceRecognition"]["Name"] == ""
+    assert len(data) == 0
+
+def test_delete_one_item_not_found(gallery_and_json):
+    gallery, test_json_path = gallery_and_json
+
     assert (
-        data[0]["FaceRecognition"]["Embeddings"][0]["HailoMatrix"]["data"]
-        == identical_matrix.tolist()
+        gallery.delete_item_by_name("Stefanos")
+        == GalleryDeletionStatus.NOT_FOUND
     )
+
+    # Check if the file was created and written to
+    assert os.path.exists(str(test_json_path))
+    with open(str(test_json_path), "r") as f:
+        data = json.load(f)
+    assert len(data) == 2
