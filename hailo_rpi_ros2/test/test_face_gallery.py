@@ -157,7 +157,9 @@ def max_face_matrix():
 
 # Fixture for the Gallery object and test JSON file
 @pytest.fixture
-def gallery_and_json(tmp_path: Path, alon_face_matrix: np.ndarray, max_face_matrix: np.ndarray):
+def gallery_and_json(
+    tmp_path: Path, alon_face_matrix: np.ndarray, max_face_matrix: np.ndarray
+):
     # Create a test JSON file
     test_json_path = tmp_path / "test_gallery.json"
     test_data = [
@@ -205,7 +207,9 @@ def gallery_and_json(tmp_path: Path, alon_face_matrix: np.ndarray, max_face_matr
 
 
 # Test Case 1: Track ID already exists (and local embeddings loaded)
-def test_alon_face_found(gallery_and_json: tuple[Gallery, Any], alon_face_matrix: np.ndarray):
+def test_alon_face_found(
+    gallery_and_json: tuple[Gallery, Any], alon_face_matrix: np.ndarray
+):
     gallery, _ = gallery_and_json
 
     # Mock detection with existing track ID
@@ -236,7 +240,9 @@ def test_alon_face_found(gallery_and_json: tuple[Gallery, Any], alon_face_matrix
     assert calls[1][0][0].get_label() == "Alon"
 
 
-def test_max_face_found(gallery_and_json: tuple[Gallery, Any], max_face_matrix: np.ndarray):
+def test_max_face_found(
+    gallery_and_json: tuple[Gallery, Any], max_face_matrix: np.ndarray
+):
     gallery, _ = gallery_and_json
 
     # Mock detection with existing track ID
@@ -618,15 +624,43 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path: Pa
     )
 
 
-def test_add_identical_item_to_empty_gallery_item_exists(tmp_path: Path):
-    gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
-
-    identical_matrix = generate_realistic_embedding()
+def test_add_identical_embedding_item_exists(
+    gallery_and_json, max_face_matrix
+):
+    gallery, _ = gallery_and_json
 
     # Mock detection with dissimilar embedding
     mock_detection = MagicMock()
     mock_matrix = MagicMock()
-    mock_matrix.get_data.return_value = identical_matrix.tolist()
+    mock_matrix.get_data.return_value = max_face_matrix
+    mock_unique_id = MagicMock()
+    mock_unique_id.get_id.return_value = 11
+
+    # Set up mock behavior
+    mock_detection.get_objects_typed.side_effect = [
+        [mock_unique_id],
+        [mock_matrix],
+        [mock_unique_id],
+        [], # No classifications
+        [mock_unique_id],
+        [mock_matrix],
+    ]
+
+    gallery.update([mock_detection])
+    assert (
+        gallery.append_new_item(name="Max", append=False)
+        == GalleryAppendStatus.ITEM_ALREADY_EXISTS
+    )
+
+def test_add_distant_embedding_identical_name_item_exists(
+    gallery_and_json, max_face_matrix
+):
+    gallery, _ = gallery_and_json
+
+    # Mock detection with dissimilar embedding
+    mock_detection = MagicMock()
+    mock_matrix = MagicMock()
+    mock_matrix.get_data.return_value = generate_realistic_embedding().tolist()
     mock_unique_id = MagicMock()
     mock_unique_id.get_id.return_value = 11
 
@@ -636,41 +670,13 @@ def test_add_identical_item_to_empty_gallery_item_exists(tmp_path: Path):
         [mock_matrix],
         [mock_unique_id],
         [mock_matrix],
-        [mock_unique_id],
-        [],  # No classifications
     ]
 
     gallery.update([mock_detection])
     assert (
-        gallery.append_new_item(name="Stefanos", append=False)
-        == GalleryAppendStatus.SUCCESS
-    )
-
-    # Mock detection with dissimilar embedding
-    mock_detection2 = MagicMock()
-    mock_matrix2 = MagicMock()
-    mock_matrix2.get_data.return_value = identical_matrix.tolist()
-    mock_unique_id2 = MagicMock()
-    mock_unique_id2.get_id.return_value = 12
-
-    # Set up mock behavior
-    mock_detection2.get_objects_typed.side_effect = [
-        [mock_unique_id2],
-        [mock_matrix2],
-        [mock_unique_id2],
-        [],  # No classifications
-        [mock_unique_id2],
-        [mock_matrix2],
-        [mock_unique_id2],
-        [],  # No classifications
-    ]
-
-    gallery.update([mock_detection2])
-    assert (
-        gallery.append_new_item(name="Stefanos", append=False)
+        gallery.append_new_item(name="Max", append=False)
         == GalleryAppendStatus.ITEM_ALREADY_EXISTS
     )
-
 
 def test_add_item_to_empty_gallery_no_faces_found(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
@@ -738,10 +744,7 @@ def test_delete_one_item(tmp_path: Path):
         == GalleryAppendStatus.SUCCESS
     )
     assert len(gallery.tracking_id_to_global_id) == 1
-    assert (
-        gallery.delete_item_by_name("Stefanos")
-        == GalleryDeletionStatus.SUCCESS
-    )
+    assert gallery.delete_item_by_name("Stefanos") == GalleryDeletionStatus.SUCCESS
     # Assertions
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 1
@@ -756,13 +759,11 @@ def test_delete_one_item(tmp_path: Path):
         data = json.load(f)
     assert len(data) == 0
 
+
 def test_delete_one_item_not_found(gallery_and_json):
     gallery, test_json_path = gallery_and_json
 
-    assert (
-        gallery.delete_item_by_name("Stefanos")
-        == GalleryDeletionStatus.NOT_FOUND
-    )
+    assert gallery.delete_item_by_name("Stefanos") == GalleryDeletionStatus.NOT_FOUND
 
     # Check if the file was created and written to
     assert os.path.exists(str(test_json_path))

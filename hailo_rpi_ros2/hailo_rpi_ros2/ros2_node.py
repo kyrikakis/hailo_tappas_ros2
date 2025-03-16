@@ -120,17 +120,20 @@ class HailoDetection(Node):
         response.message = "Failed"
         match status:
             case GalleryAppendStatus.SUCCESS:
-                response.success = True
+                response.result = 0
                 response.message = "Person added"
-            case GalleryAppendStatus.NO_FACES_FOUND:
-                response.success = False
-                response.message = "No faces found"
+            case GalleryAppendStatus.ITEM_ALREADY_EXISTS:
+                response.result = 1
+                response.message = "Name exists"
             case GalleryAppendStatus.MULTIPLE_FACES_FOUND:
-                response.success = False
+                response.success = 2
                 response.message = "Multiple faces found"
+            case GalleryAppendStatus.NO_FACES_FOUND:
+                response.result = 3
+                response.message = "No faces found"
             case _:
-                response.success = False
-                response.message = "Failed"
+                response.success = 4
+                response.message = "Failed, see the logs for more details"
 
         return response
 

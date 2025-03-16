@@ -25,11 +25,10 @@ from enum import Enum
 
 class GalleryAppendStatus(Enum):
     SUCCESS = 0
-    NO_TRACK_ID = 1
-    NO_EMBEDDING = 2
-    ITEM_ALREADY_EXISTS = 3
-    MULTIPLE_FACES_FOUND = 4
-    NO_FACES_FOUND = 5
+    ITEM_ALREADY_EXISTS = 1
+    MULTIPLE_FACES_FOUND = 2
+    NO_FACES_FOUND = 3
+    ERROR = 4
 
 class GalleryDeletionStatus(Enum):
     SUCCESS = 0
@@ -277,7 +276,8 @@ class Gallery:
             classification_type = "recognition_result"
             existing_recognitions = [
                 obj
-                for obj in detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
+                for obj 
+                in detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
                 if obj.get_classification_type() == classification_type
             ]
             name = self.m_embedding_names[global_id]
@@ -295,7 +295,8 @@ class Gallery:
         self.tracking_id_to_global_id[unique_id] = global_id
         global_ids = [
             obj
-            for obj in detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
+            for obj 
+            in detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
             if obj.get_mode() == hailo.GLOBAL_ID
         ]
         if not global_ids:
@@ -360,12 +361,13 @@ class Gallery:
         detection = self.last_face_detections[0]
         track_ids = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
         if not track_ids:
-            return GalleryAppendStatus.NO_TRACK_ID
+            print("Gallery Error: no track_id in detection")
+            return GalleryAppendStatus.ERROR
         track_id = track_ids[0].get_id()
         new_embedding = self._get_embedding_matrix(detection)
         if new_embedding is None:
-            # No embedding exists in this detection object, continue to next detection
-            return GalleryAppendStatus.NO_EMBEDDING
+            print("Gallery Error: no embedding in detection")
+            return GalleryAppendStatus.ERROR
         if not self.m_embeddings:
             # Gallery is empty, adding new global id
             self._add_and_save_embedding(name, new_embedding, detection, track_id)
@@ -375,7 +377,10 @@ class Gallery:
         if min_distance > self.m_similarity_thr:
             # If no similar embedding found
             if name in self.m_embedding_names:
-                global_id = self.m_embedding_names.index(name)
+                if(append):
+                    global_id = self.m_embedding_names.index(name)
+                else:
+                    return GalleryAppendStatus.ITEM_ALREADY_EXISTS
             else:
                 global_id = self._create_new_global_id()
                 self.m_embedding_names.append(name)
