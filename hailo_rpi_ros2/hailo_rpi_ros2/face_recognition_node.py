@@ -40,9 +40,9 @@ from vision_msgs.msg import (
 )
 
 
-class HailoDetection(Node):
+class FaceRecognitionNode(Node):
     def __init__(self):
-        Node.__init__(self, "hailo_detection")
+        Node.__init__(self, "face_recognition")
 
         self.image_publisher_compressed = self.create_publisher(
             CompressedImage, "~/image_bbx/compressed", 10
@@ -208,7 +208,7 @@ class HailoDetection(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    detection = HailoDetection()
+    detection = FaceRecognitionNode()
 
     rclpy.spin(detection)
     if hasattr(detection, "detection_thread") and detection.detection_thread.is_alive():
@@ -220,4 +220,4 @@ def main(args=None):
 
 # Main program logic follows:
 if __name__ == "__main__":
-    unittest.main()
+    main()
