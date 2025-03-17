@@ -63,30 +63,48 @@ class FaceRecognitionNode(Node):
                 ("input", Parameter.Type.STRING),
                 ("local_gallery_file", Parameter.Type.STRING),
                 ("similarity_threshhold", Parameter.Type.DOUBLE),
+                ("video_width", Parameter.Type.INTEGER),
+                ("video_height", Parameter.Type.INTEGER),
+                ("video_fps", Parameter.Type.INTEGER),
             ],
         )
-        self.input = (
+        input = (
             self.get_parameter("input")
             .get_parameter_value()
             .string_value
         )
-        self.local_gallery_file = (
+        local_gallery_file = (
             self.get_parameter("local_gallery_file")
             .get_parameter_value()
             .string_value
         )
-        self.similarity_threshhold = (
+        similarity_threshhold = (
             self.get_parameter("similarity_threshhold")
             .get_parameter_value()
             .double_value
         )
+        video_width = (
+            self.get_parameter("video_width")
+            .get_parameter_value()
+            .integer_value
+        )
+        video_height = (
+            self.get_parameter("video_height")
+            .get_parameter_value()
+            .integer_value
+        )
+        video_fps = (
+            self.get_parameter("video_fps")
+            .get_parameter_value()
+            .integer_value
+        )
 
         gallery_file_path = self._get_absolute_file_path_in_build_dir(
-            self.local_gallery_file
+            local_gallery_file
         )
         self.gallery = Gallery(
             json_file_path=gallery_file_path,
-            similarity_thr=self.similarity_threshhold,
+            similarity_thr=similarity_threshhold,
         )
 
         self.face_recognition = face_recognition.FaceRecognition(
@@ -94,7 +112,10 @@ class FaceRecognitionNode(Node):
         )
 
         gstreamer_app = GStreamerFaceRecognitionApp(
-            self.input, 
+            input,
+            video_width,
+            video_height,
+            video_fps,
             self.face_recognition.app_callback
         )
 

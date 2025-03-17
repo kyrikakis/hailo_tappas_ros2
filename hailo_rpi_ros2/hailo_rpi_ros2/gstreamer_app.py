@@ -37,7 +37,13 @@ except ImportError:
 # GStreamerApp class
 # -----------------------------------------------------------------------------------------------
 class GStreamerApp:
-    def __init__(self, input: str):
+    def __init__(
+        self,
+        input: str,
+        video_width: int = 1280,
+        video_height: int = 720,
+        video_fps: int = 15,
+    ):
         # Set the process title
         setproctitle.setproctitle("Hailo Python App")
 
@@ -65,8 +71,9 @@ class GStreamerApp:
 
         # Set Hailo parameters; these parameters should be set based on the model used
         self.batch_size = 1
-        self.video_width = 1280
-        self.video_height = 720
+        self.video_width = video_width
+        self.video_height = video_height
+        self.video_fps = video_fps
         self.video_format = "RGB"
         self.hef_path = None
         self.app_callback = None
@@ -174,6 +181,7 @@ class GStreamerApp:
                     self.pipeline,
                     self.video_width,
                     self.video_height,
+                    self.video_fps,
                     self.video_format,
                 ),
             )
@@ -212,7 +220,7 @@ class GStreamerApp:
 
 
 def picamera_thread(
-    pipeline, video_width, video_height, video_format, picamera_config=None
+    pipeline, video_width, video_height, video_fps, video_format, picamera_config=None
 ):
     appsrc = pipeline.get_by_name("app_source")
     appsrc.set_property("is-live", True)
@@ -222,9 +230,9 @@ def picamera_thread(
     with Picamera2() as picam2:
         if picamera_config is None:
             # Default configuration
-            main = {"size": (1280, 720), "format": "RGB888"}
+            main = {"size": (video_width, video_height), "format": "RGB888"}
             lores = {"size": (video_width, video_height), "format": "RGB888"}
-            controls = {"FrameRate": 15}
+            controls = {"FrameRate": video_fps}
             config = picam2.create_preview_configuration(
                 main=main, lores=lores, controls=controls
             )
@@ -243,7 +251,7 @@ def picamera_thread(
             "caps",
             Gst.Caps.from_string(
                 f"video/x-raw, format={format_str}, width={width}, height={height}, "
-                f"framerate=30/1, pixel-aspect-ratio=1/1"
+                f"framerate={video_fps}/1, pixel-aspect-ratio=1/1"
             ),
         )
         picam2.start()

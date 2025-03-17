@@ -13,6 +13,7 @@
 # limitations under the License.
 # !/usr/bin/env python3
 
+from typing import Callable
 from hailo_apps_infra.hailo_rpi_common import (
     detect_hailo_arch,
 )
@@ -36,9 +37,18 @@ gi.require_version("Gst", "1.0")
 
 # This class inherits from the hailo_rpi_common.GStreamerApp class
 class GStreamerFaceRecognitionApp(GStreamerApp):
-    def __init__(self, input: str, app_callback):
+    def __init__(
+        self,
+        input: str,
+        video_width: int,
+        video_height: int,
+        video_fps: int,
+        app_callback: Callable[
+            [gi.repository.Gst.Pad, gi.repository.Gst.PadProbeInfo], None
+        ],
+    ):
         # Call the parent class constructor
-        super().__init__(input)
+        super().__init__(input, video_width, video_height, video_fps)
         # Additional initialization code can be added here
         # Set Hailo parameters these parameters should be set based on the model used
         self.vdevice_group_id = 1
