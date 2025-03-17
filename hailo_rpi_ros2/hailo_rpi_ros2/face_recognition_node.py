@@ -63,7 +63,6 @@ class FaceRecognitionNode(Node):
                 ("input", Parameter.Type.STRING),
                 ("local_gallery_file", Parameter.Type.STRING),
                 ("similarity_threshhold", Parameter.Type.DOUBLE),
-                ("queue_size", Parameter.Type.INTEGER),
             ],
         )
         self.input = (
@@ -81,11 +80,6 @@ class FaceRecognitionNode(Node):
             .get_parameter_value()
             .double_value
         )
-        self.queue_size = (
-            self.get_parameter("queue_size")
-            .get_parameter_value()
-            .integer_value
-        )
 
         gallery_file_path = self._get_absolute_file_path_in_build_dir(
             self.local_gallery_file
@@ -93,7 +87,6 @@ class FaceRecognitionNode(Node):
         self.gallery = Gallery(
             json_file_path=gallery_file_path,
             similarity_thr=self.similarity_threshhold,
-            queue_size=self.queue_size,
         )
 
         self.face_recognition = face_recognition.FaceRecognition(
@@ -101,7 +94,8 @@ class FaceRecognitionNode(Node):
         )
 
         gstreamer_app = GStreamerFaceRecognitionApp(
-            self.input, self.face_recognition.app_callback
+            self.input, 
+            self.face_recognition.app_callback
         )
 
         self.detection_thread = Thread(target=gstreamer_app.run)

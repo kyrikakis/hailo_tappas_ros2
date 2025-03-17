@@ -73,13 +73,11 @@ class Gallery:
         self,
         json_file_path="local_gallery.json",
         similarity_thr=0.40,
-        queue_size=100,
     ):
         self.m_embeddings: List[List[np.ndarray]] = []
         self.tracking_id_to_global_id: Dict[int, int] = {}
         self.m_embedding_names: List[str] = []
         self.m_similarity_thr: float = similarity_thr
-        self.m_queue_size: int = queue_size
         self.m_json_file_path: Optional[str] = json_file_path
 
         self.last_face_detections: List[hailo.HailoDetection] = []
@@ -103,8 +101,6 @@ class Gallery:
         return np.array(distances)
 
     def _add_embedding(self, global_id: int, matrix: np.ndarray):
-        if len(self.m_embeddings[global_id]) >= self.m_queue_size:
-            self.m_embeddings[global_id].pop()
         self.m_embeddings[global_id].insert(0, matrix)
 
     def _encode_hailo_face_recognition_result(

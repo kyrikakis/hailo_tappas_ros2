@@ -63,9 +63,8 @@ def test_gallery_get_xtensor():
 
 
 def test_gallery_initialization():
-    gallery = Gallery(similarity_thr=0.2, queue_size=100)
+    gallery = Gallery(similarity_thr=0.2)
     assert gallery.m_similarity_thr == 0.2
-    assert gallery.m_queue_size == 100
     assert len(gallery.m_embeddings) == 0
 
 
