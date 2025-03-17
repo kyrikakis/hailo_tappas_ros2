@@ -125,21 +125,9 @@ class FaceRecognitionNode(Node):
     def _get_absolute_file_path_in_build_dir(self, file: str) -> str:
         # Get the directory of the current Python file
         current_dir = os.path.dirname(os.path.abspath(__file__))
-
         # Construct the absolute file path
         absolute_file_path = os.path.join(current_dir, "resources", file)
-
-        try:
-            # Read the file content
-            with open(absolute_file_path, "r") as file:
-                file.read()
-
-            # Process the file content
-            self.get_logger().info(f"File found: {absolute_file_path}")
-            return absolute_file_path
-        except FileNotFoundError as e:
-            self.get_logger().error(f"File not found: {absolute_file_path}")
-            raise e
+        return absolute_file_path
 
     def add_face_callback(self, request: SaveFace.Request, response: SaveFace.Response):
         self.get_logger().info(f"Incoming request: Add face {request.name}")

@@ -11,3 +11,4 @@ hailo_rpi_ros2/hailo_rpi_ros2/resources/yolov8m.hef
 hailo_rpi_ros2/hailo_rpi_ros2/resources/yolov8s_h8l.hef
 hailo_rpi_ros2/hailo_rpi_ros2/resources/face_recognition.mp4
 hailo_rpi_ros2/hailo_rpi_ros2/resources/face_recognition_local_gallery.json
+hailo_rpi_ros2/hailo_rpi_ros2/resources/local_gallery.json
