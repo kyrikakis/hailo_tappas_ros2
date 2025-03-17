@@ -32,7 +32,8 @@ H8L_HEFS=(
 )
 
 FILES=(
-  "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/example.mp4"
+  "https://hailo-tappas.s3.eu-west-2.amazonaws.com/v3.31/general/media/face_recognition.mp4"
+  "https://hailo-tappas.s3.eu-west-2.amazonaws.com/v3.31/general/media/face_recognition/face_recognition_local_gallery.json"
 )
 
 echo "Downloading all models and video resources..."
