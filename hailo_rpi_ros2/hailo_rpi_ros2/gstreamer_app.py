@@ -35,58 +35,10 @@ except ImportError:
 
 
 # -----------------------------------------------------------------------------------------------
-# User-defined class to be used in the callback function
-# -----------------------------------------------------------------------------------------------
-# A sample class to be used in the callback function
-# This example allows to:
-# 1. Count the number of frames
-# 2. Setup a multiprocessing queue to pass the frame to the main thread
-# Additional variables and functions can be added to this class as needed
-class app_callback_class:
-    def __init__(self):
-        self.frame_count = 0
-        self.frame_queue = multiprocessing.Queue(maxsize=3)
-        self.running = True
-
-    def increment(self):
-        self.frame_count += 1
-
-    def get_count(self):
-        return self.frame_count
-
-    def set_frame(self, frame):
-        if not self.frame_queue.full():
-            self.frame_queue.put(frame)
-
-    def get_frame(self):
-        if not self.frame_queue.empty():
-            return self.frame_queue.get()
-        else:
-            return None
-
-
-def dummy_callback(pad, info, user_data):
-    """
-    Minimal dummy callback function that returns immediately.
-
-    Args:
-        pad: The GStreamer pad
-        info: The probe info
-        user_data: User-defined data passed to the callback
-
-    Returns
-    -------
-        Gst.PadProbeReturn.OK
-
-    """
-    return Gst.PadProbeReturn.OK
-
-
-# -----------------------------------------------------------------------------------------------
 # GStreamerApp class
 # -----------------------------------------------------------------------------------------------
 class GStreamerApp:
-    def __init__(self, input: str, user_data: app_callback_class):
+    def __init__(self, input: str):
         # Set the process title
         setproctitle.setproctitle("Hailo Python App")
 
@@ -105,7 +57,6 @@ class GStreamerApp:
         self.postprocess_dir = tappas_post_process_dir
         self.video_source = input
         self.source_type = get_source_type(self.video_source)
-        self.user_data = user_data
         self.video_sink = "autovideosink"
         self.pipeline = None
         self.loop = None
@@ -204,9 +155,7 @@ class GStreamerApp:
             )
         else:
             identity_pad = identity.get_static_pad("src")
-            identity_pad.add_probe(
-                Gst.PadProbeType.BUFFER, self.app_callback, self.user_data
-            )
+            identity_pad.add_probe(Gst.PadProbeType.BUFFER, self.app_callback)
 
         hailo_display = self.pipeline.get_by_name("hailo_display")
         if hailo_display is None:
@@ -249,7 +198,6 @@ class GStreamerApp:
 
         # Clean up
         try:
-            self.user_data.running = False
             self.pipeline.set_state(Gst.State.NULL)
             for t in self.threads:
                 t.join()

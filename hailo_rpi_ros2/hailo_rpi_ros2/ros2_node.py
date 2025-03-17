@@ -90,7 +90,7 @@ class HailoDetection(Node):
         )
 
         gstreamer_app = GStreamerFaceRecognitionApp(
-            self.input, self.face_recognition.app_callback, self.face_recognition
+            self.input, self.face_recognition.app_callback
         )
 
         self.detection_thread = Thread(target=gstreamer_app.run)

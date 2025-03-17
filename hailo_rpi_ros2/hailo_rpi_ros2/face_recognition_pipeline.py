@@ -21,8 +21,6 @@ from hailo_apps_infra.gstreamer_helper_pipelines import (
 )
 from hailo_rpi_ros2.gstreamer_app import (
     GStreamerApp,
-    app_callback_class,
-    dummy_callback,
 )
 import gi
 import os
@@ -38,9 +36,9 @@ gi.require_version("Gst", "1.0")
 
 # This class inherits from the hailo_rpi_common.GStreamerApp class
 class GStreamerFaceRecognitionApp(GStreamerApp):
-    def __init__(self, input: str, app_callback, user_data):
+    def __init__(self, input: str, app_callback):
         # Call the parent class constructor
-        super().__init__(input, user_data)
+        super().__init__(input)
         # Additional initialization code can be added here
         # Set Hailo parameters these parameters should be set based on the model used
         self.vdevice_group_id = 1
@@ -245,11 +243,3 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
             "fakevideosink sync=false "
         )
         return display_pipeline
-
-
-if __name__ == "__main__":
-    # Create an instance of the user app callback class
-    user_data = app_callback_class()
-    app_callback = dummy_callback
-    app = GStreamerFaceRecognitionApp(app_callback, user_data)
-    app.run()

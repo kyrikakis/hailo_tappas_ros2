@@ -19,13 +19,17 @@ from hailo_apps_infra.hailo_rpi_common import (
     get_numpy_from_buffer,
     app_callback_class,
 )
+import hailo_rpi_ros2
 from hailo_rpi_ros2.face_gallery import (
     Gallery,
 )
 import hailo
 from typing import Callable
 from gi.repository import Gst
+import gi
 import cv2
+
+gi.require_version("Gst", "1.0")
 
 
 class FaceRecognition(app_callback_class):
@@ -39,21 +43,20 @@ class FaceRecognition(app_callback_class):
         self.gallery = gallery
 
     # This is the callback function that will be called when data is available from the pipeline
-    def app_callback(self, pad, info, user_data):
+    def app_callback(
+        self,
+        pad: gi.repository.Gst.Pad,
+        info: gi.repository.Gst.PadProbeInfo
+    ):
         # Get the GstBuffer from the probe info
         buffer = info.get_buffer()
         # Check if the buffer is valid
         if buffer is None:
             return Gst.PadProbeReturn.OK
 
-        # Using the user_data to count the number of frames
-        user_data.increment()
-        string_to_print = f"Frame count: {user_data.get_count()}\n"
-
         # Get the caps from the pad
         format, width, height = get_caps_from_pad(pad)
 
-        # If the user_data.use_frame is set to True, we can get the video frame from the buffer
         frame = None
         if format is not None and width is not None and height is not None:
             # Get video frame
@@ -95,7 +98,6 @@ class FaceRecognition(app_callback_class):
             )
             # Convert the frame to BGR
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            user_data.set_frame(frame)
             self.frame_callback(frame)
 
         # print(string_to_print)
