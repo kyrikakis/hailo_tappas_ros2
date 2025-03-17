@@ -31,6 +31,13 @@ from rclpy import Parameter
 from hailo_rpi_ros2.face_recognition_pipeline import GStreamerFaceRecognitionApp
 from threading import Thread
 import os
+from typing import (
+    List,
+)
+from vision_msgs.msg import (
+    Detection2DArray,
+    Detection2D,
+)
 
 
 class HailoDetection(Node):
@@ -38,9 +45,13 @@ class HailoDetection(Node):
         Node.__init__(self, "hailo_detection")
 
         self.image_publisher_compressed = self.create_publisher(
-            CompressedImage, "/camera/image_raw/compressed", 10
+            CompressedImage, "~/image_bbx/compressed", 10
         )
-        self.image_publisher_ = self.create_publisher(Image, "/camera/image_raw", 10)
+        self.image_publisher = self.create_publisher(Image, "~/image_bbx", 10)
+
+        self.detections_publisher = self.create_publisher(
+            Detection2DArray, "~/detections", 10
+        )
 
         self.create_service(SaveFace, "~/save_face", self.add_face_callback)
 
@@ -86,7 +97,7 @@ class HailoDetection(Node):
         )
 
         self.face_recognition = face_recognition.FaceRecognition(
-            self.gallery, self.frame_callback
+            self.gallery, self.frame_callback, self.detection_callback
         )
 
         gstreamer_app = GStreamerFaceRecognitionApp(
@@ -141,13 +152,13 @@ class HailoDetection(Node):
                     "Consider calling with append=true"
                 )
             case GalleryAppendStatus.MULTIPLE_FACES_FOUND:
-                response.success = 2
+                response.result = 2
                 response.message = "Error: Multiple faces found"
             case GalleryAppendStatus.NO_FACES_FOUND:
                 response.result = 3
                 response.message = "Error: No faces found"
             case _:
-                response.success = 4
+                response.result = 4
                 response.message = "Failed, see the logs for more details"
 
         return response
@@ -165,10 +176,23 @@ class HailoDetection(Node):
                 response.result = 1
                 response.message = "Name not found"
             case _:
-                response.success = 2
+                response.result = 2
                 response.message = "Failed, see the logs for more details"
 
         return response
+
+    def detection_callback(self, detections: List[Detection2D]):
+        msg = Detection2DArray()
+        msg.header.frame_id = "camera_frame"
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.detections = detections
+
+        for detection in detections:
+            detection.header.frame_id = "camera_frame"
+            detection.header.stamp = msg.header.stamp
+            msg.detections.append(detection)
+
+        self.detections_publisher.publish(msg)
 
     def frame_callback(self, frame: cv2.UMat):
         ret, buffer = cv2.imencode(".jpg", frame)
@@ -196,4 +220,4 @@ def main(args=None):
 
 # Main program logic follows:
 if __name__ == "__main__":
-    main()
+    unittest.main()

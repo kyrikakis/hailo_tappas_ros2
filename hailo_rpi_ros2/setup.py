@@ -33,7 +33,7 @@ setup(
     tests_require=["pytest", "pydocstyle"],
     entry_points={
         "console_scripts": [
-            "ros2_node = hailo_rpi_ros2.ros2_node:main",
+            "face_recognition_node = hailo_rpi_ros2.face_recognition_node:main",
         ],
     },
 )

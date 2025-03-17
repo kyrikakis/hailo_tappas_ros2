@@ -31,15 +31,18 @@ RUN apt-get update && apt-get install -y python3 ffmpeg x11-utils python3-dev py
     gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-libcamera libopencv-dev \
     python3-opencv
 
-# Supervisor
-RUN apt-get install -y supervisor vim
-
 # Dependencies for rpicam-apps-hailo-postprocess
 RUN apt-get update && apt-get install -y rpicam-apps hailo-tappas-core=3.31.0+1-1 hailo-all=4.20.0
 # Excludes hailort as it fails to install during build stage
 
 # Dependencies for hailo-rpi5-examples
 RUN apt-get update && apt-get install -y python3-venv meson python3-picamera2 sudo
+
+# Dependencies for vision_msgs
+RUN apt-get update && apt-get install -y cppcheck
+
+# Supervisor
+RUN apt-get install -y supervisor vim
 
 # Download Raspberry Pi examples
 RUN git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
@@ -56,6 +59,9 @@ RUN mkdir -p /workspaces/src/hailo_rpi_ros2/
 COPY . /workspaces/src/hailo_rpi_ros2/
 RUN cp /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
 
+RUN cd /workspaces && \
+    git clone --depth 1 --branch 4.1.1 git@github.com:ros-perception/vision_msgs.git
+
 # Install requirements and build
 RUN source /opt/ros/jazzy/setup.bash && \
     cd /workspaces/src/hailo_rpi_ros2 && \
@@ -63,7 +69,7 @@ RUN source /opt/ros/jazzy/setup.bash && \
     ./download_resources.sh && \
     cd /workspaces && \
     colcon build --symlink-install && \
-    colcon test --return-code-on-test-failure
+    colcon test --return-code-on-test-failure --event-handlers console_direct+
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
