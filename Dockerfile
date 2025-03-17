@@ -60,7 +60,7 @@ COPY . /workspaces/src/hailo_rpi_ros2/
 RUN cp /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
 
 RUN cd /workspaces && \
-    git clone --depth 1 --branch 4.1.1 git@github.com:ros-perception/vision_msgs.git
+    git clone --depth 1 --branch 4.1.1 https://github.com/ros-perception/vision_msgs.git
 
 # Install requirements and build
 RUN source /opt/ros/jazzy/setup.bash && \
