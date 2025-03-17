@@ -109,16 +109,17 @@ def map_to_ros2_detection_2d_array(
             print("person: ", person_embeddings[0].get_label())
         track_id = 0
         track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
-        if len(track) == 1:
-            track_id = track[0].get_id()
 
         detection_2d = Detection2D()
-        detection_2d.id = track_id
+        if len(track) == 1:
+            track_id = track[0].get_id()
+            detection_2d.id = str(track_id)
+
         detection_2d.bbox = hailo_bbox_to_bounding_box_2d(detection.get_bbox())
         # Add ObjectHypothesisWithPose
         hypothesis = ObjectHypothesisWithPose()
-        hypothesis.hypothesis.class_id = label
-        hypothesis.hypothesis.score = confidence
+        hypothesis.hypothesis.class_id = str(label)
+        hypothesis.hypothesis.score = float(confidence)
         detection_2d.results.append(hypothesis)
         detections_2d.append(detection_2d)
         print(

@@ -29,7 +29,7 @@ def generate_launch_description():
     hailo_detection_node = Node(
         package="hailo_rpi_ros2",
         executable="face_recognition_node",
-        name="hailo_detection",
+        name="face_recognition",
         output="screen",
         parameters=[hailo_params],
         prefix=[

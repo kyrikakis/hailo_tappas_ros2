@@ -117,7 +117,7 @@ def test_app_callback(
     assert len(detections_array) == 1
 
     detection = detections_array[0]
-    assert detection.id == 123  # Check track ID
+    assert detection.id == '123'
 
     # Check ObjectHypothesisWithPose
     hypothesis = detection.results[0].hypothesis

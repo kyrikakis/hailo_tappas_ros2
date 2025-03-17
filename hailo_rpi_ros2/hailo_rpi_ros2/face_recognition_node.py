@@ -60,29 +60,29 @@ class FaceRecognitionNode(Node):
         self.declare_parameters(
             namespace="",
             parameters=[
-                ("face_recognition.input", Parameter.Type.STRING),
-                ("face_recognition.local_gallery_file", Parameter.Type.STRING),
-                ("face_recognition.similarity_threshhold", Parameter.Type.DOUBLE),
-                ("face_recognition.queue_size", Parameter.Type.INTEGER),
+                ("input", Parameter.Type.STRING),
+                ("local_gallery_file", Parameter.Type.STRING),
+                ("similarity_threshhold", Parameter.Type.DOUBLE),
+                ("queue_size", Parameter.Type.INTEGER),
             ],
         )
         self.input = (
-            self.get_parameter("face_recognition.input")
+            self.get_parameter("input")
             .get_parameter_value()
             .string_value
         )
         self.local_gallery_file = (
-            self.get_parameter("face_recognition.local_gallery_file")
+            self.get_parameter("local_gallery_file")
             .get_parameter_value()
             .string_value
         )
         self.similarity_threshhold = (
-            self.get_parameter("face_recognition.similarity_threshhold")
+            self.get_parameter("similarity_threshhold")
             .get_parameter_value()
             .double_value
         )
         self.queue_size = (
-            self.get_parameter("face_recognition.queue_size")
+            self.get_parameter("queue_size")
             .get_parameter_value()
             .integer_value
         )
@@ -187,10 +187,9 @@ class FaceRecognitionNode(Node):
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.detections = detections
 
-        for detection in detections:
+        for detection in msg.detections:
             detection.header.frame_id = "camera_frame"
             detection.header.stamp = msg.header.stamp
-            msg.detections.append(detection)
 
         self.detections_publisher.publish(msg)
 
