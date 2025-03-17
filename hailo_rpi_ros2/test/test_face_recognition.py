@@ -24,24 +24,6 @@ from gi.repository import Gst
 gi.require_version("Gst", "1.0")
 
 
-class MockUserData:
-    def __init__(self):
-        self.count = 0
-        self.frame = None
-
-    def increment(self):
-        self.count += 1
-
-    def get_count(self):
-        return self.count
-
-    def set_frame(self, frame):
-        self.frame = frame
-
-    def get_frame(self):
-        return self.frame
-
-
 @pytest.fixture
 def mock_gallery():
     return MagicMock(spec=face_gallery.Gallery)
@@ -76,11 +58,6 @@ def mock_info():
 
 
 @pytest.fixture
-def mock_user_data():
-    return MockUserData()
-
-
-@pytest.fixture
 def mock_get_roi():
     with patch("hailo.get_roi_from_buffer") as mock:
         mock_roi = MagicMock()
@@ -106,29 +83,25 @@ def test_app_callback(
     mock_frame_callback,
     mock_pad,
     mock_info,
-    mock_user_data,
     mock_get_roi,
 ):
     face_recog = face_recognition.FaceRecognition(mock_gallery, mock_frame_callback)
-    result = face_recog.app_callback(mock_pad, mock_info, mock_user_data)
+    result = face_recog.app_callback(mock_pad, mock_info)
 
     assert result == Gst.PadProbeReturn.OK
-    assert mock_user_data.get_count() == 1
     mock_gallery.update.assert_called_once_with(
         [mock_get_roi.return_value.get_objects_typed.return_value[0]]
     )
     mock_frame_callback.assert_called_once()
-    assert mock_user_data.get_frame() is not None
 
 
 def test_app_callback_no_buffer(
-    mock_gallery, mock_frame_callback, mock_pad, mock_info, mock_user_data, mock_get_roi
+    mock_gallery, mock_frame_callback, mock_pad, mock_info, mock_get_roi
 ):
     mock_info.get_buffer.return_value = None
     face_recog = face_recognition.FaceRecognition(mock_gallery, mock_frame_callback)
-    result = face_recog.app_callback(mock_pad, mock_info, mock_user_data)
+    result = face_recog.app_callback(mock_pad, mock_info)
 
     assert result == Gst.PadProbeReturn.OK
-    assert mock_user_data.get_count() == 0
     mock_get_roi.return_value.assert_not_called()
     mock_frame_callback.assert_not_called()

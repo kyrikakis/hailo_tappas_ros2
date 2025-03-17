@@ -19,7 +19,6 @@ from hailo_apps_infra.hailo_rpi_common import (
     get_numpy_from_buffer,
     app_callback_class,
 )
-import hailo_rpi_ros2
 from hailo_rpi_ros2.face_gallery import (
     Gallery,
 )
@@ -53,6 +52,8 @@ class FaceRecognition(app_callback_class):
         # Check if the buffer is valid
         if buffer is None:
             return Gst.PadProbeReturn.OK
+
+        string_to_print = ""
 
         # Get the caps from the pad
         format, width, height = get_caps_from_pad(pad)

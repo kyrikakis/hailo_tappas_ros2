@@ -16,7 +16,6 @@
 from gi.repository import Gst, GLib, GObject
 from hailo_apps_infra.gstreamer_helper_pipelines import get_source_type
 
-import multiprocessing
 import setproctitle
 import signal
 import os
