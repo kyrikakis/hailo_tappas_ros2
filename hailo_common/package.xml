@@ -1,29 +1,23 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>hailo_face_recognition</name>
+  <name>hailo_common</name>
   <version>1.0.1</version>
-  <description>Hailo Face Regognition ROS2 Package</description>
+  <description>ROS2 package for Hailo common classes</description>
   <maintainer email="kirikakis@gmail.com">Stefanos Kyrikakis</maintainer>
   <license>Apache 2.0 License</license>
 
   <build_depend>rclpy</build_depend>
-  <build_depend>hailo_msgs</build_depend>
   <build_depend>vision_msgs</build_depend>
-  <build_depend>hailo_common</build_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
   <test_depend>vision_msgs</test_depend>
-  <test_depend>hailo_msgs</test_depend>
-  <test_depend>hailo_common</test_depend>
 
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>hailo_msgs</exec_depend>
   <exec_depend>vision_msgs</exec_depend>
-  <exec_depend>hailo_common</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

@@ -20,8 +20,10 @@ from hailo_msgs.srv import (
     SaveGalleryItem,
     DeleteGalleryItem,
 )
-from hailo_face_recognition import face_recognition
-from hailo_face_recognition.face_gallery import (
+from hailo_common.hailo_detection import (
+    HailoDetection
+)
+from hailo_common.embeddings_gallery import (
     Gallery,
     GalleryAppendStatus,
     GalleryDeletionStatus,
@@ -97,7 +99,7 @@ class FaceRecognitionNode(Node):
             similarity_thr=similarity_threshhold,
         )
 
-        self.face_recognition = face_recognition.FaceRecognition(
+        self.face_recognition = HailoDetection(
             self.gallery, self.frame_callback, self.detection_callback
         )
 
@@ -129,7 +131,7 @@ class FaceRecognitionNode(Node):
             case GalleryAppendStatus.SUCCESS:
                 response.result = 0
                 response.message = "Person added"
-            case GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND:
+            case GalleryAppendStatus.ID_FOUND_WITH_SIMILAR_EMBEDDING:
                 response.result = 1
                 response.message = (
                     "Similar embedding found with the same id. Aborted, "
@@ -163,14 +165,14 @@ class FaceRecognitionNode(Node):
         self, request: DeleteGalleryItem.Request, response: DeleteGalleryItem.Response
     ):
         self.get_logger().info(f"Incoming request: Delete face {request.id}")
-        status = self.gallery.delete_item_by_name(request.id)
+        status = self.gallery.delete_item_by_external_id(request.id)
         match status:
             case GalleryDeletionStatus.SUCCESS:
                 response.result = 0
                 response.message = "Face deleted"
             case GalleryDeletionStatus.NOT_FOUND:
                 response.result = 1
-                response.message = "Name not found"
+                response.message = "Id not found"
             case _:
                 response.result = 2
                 response.message = "Failed, see the logs for more details"

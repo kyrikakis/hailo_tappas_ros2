@@ -25,7 +25,7 @@ from enum import Enum
 
 class GalleryAppendStatus(Enum):
     SUCCESS = 0
-    SIMILAR_EMBEDDING_FOUND = 1
+    ID_FOUND_WITH_SIMILAR_EMBEDDING = 1
     SIMILAR_EMBEDDING_FOUND_WITH_DIFFERENT_ID = 2
     ID_FOUND_WITH_DISTANT_EMBEDDING = 3
     MULTIPLE_EMBEDDINGS_FOUND = 4
@@ -351,7 +351,7 @@ class Gallery:
             if self.m_embeddings:
                 self._new_embedding_to_global_id(new_embedding, detection, track_id)
 
-    def append_new_item(self, name: str, append: bool) -> GalleryAppendStatus:
+    def append_new_item(self, external_id: str, append: bool) -> GalleryAppendStatus:
         # debugpy.debug_this_thread()
         if not self.last_face_detections:
             return GalleryAppendStatus.NO_EMBEDDINGS_FOUND
@@ -369,42 +369,42 @@ class Gallery:
             return GalleryAppendStatus.ERROR
         if not self.m_embeddings:
             # Gallery is empty, adding new global id
-            self._add_and_save_embedding(name, new_embedding, detection, track_id)
+            self._add_and_save_embedding(external_id, new_embedding, detection, track_id)
             return GalleryAppendStatus.SUCCESS
         # Check if there is no other object in close distance
         closest_global_id, min_distance = self._get_closest_global_id(new_embedding)
         if min_distance > self.m_similarity_thr:
             # If no similar embedding found
-            if name in self.m_embedding_external_ids:
+            if external_id in self.m_embedding_external_ids:
                 if append:
-                    global_id = self.m_embedding_external_ids.index(name)
+                    global_id = self.m_embedding_external_ids.index(external_id)
                 else:
                     return GalleryAppendStatus.ID_FOUND_WITH_DISTANT_EMBEDDING
             else:
                 global_id = self._create_new_global_id()
-                self.m_embedding_external_ids.append(name)
+                self.m_embedding_external_ids.append(external_id)
             self._add_embedding(global_id, new_embedding)
             self._add_global_id_to_object(detection, global_id, track_id)
-            self._save_embedding_to_json_file(name, new_embedding, global_id)
+            self._save_embedding_to_json_file(external_id, new_embedding, global_id)
             return GalleryAppendStatus.SUCCESS
         else:
             # Similar embedding found
             if append:
-                old_name = self.m_embedding_external_ids[closest_global_id]
-                self.m_embedding_external_ids[closest_global_id] = name
+                old_external_id = self.m_embedding_external_ids[closest_global_id]
+                self.m_embedding_external_ids[closest_global_id] = external_id
                 self._add_embedding(closest_global_id, new_embedding)
                 self._add_global_id_to_object(detection, closest_global_id, track_id)
-                self._append_embedding_in_json(old_name, name, new_embedding)
+                self._append_embedding_in_json(old_external_id, external_id, new_embedding)
                 return GalleryAppendStatus.SUCCESS
             else:
-                if name in self.m_embedding_external_ids:
-                    return GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND
+                if external_id in self.m_embedding_external_ids:
+                    return GalleryAppendStatus.ID_FOUND_WITH_SIMILAR_EMBEDDING
                 else:
                     return GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND_WITH_DIFFERENT_ID
 
-    def delete_item_by_name(self, name: str) -> GalleryDeletionStatus:
-        if name in self.m_embedding_external_ids:
-            index_to_remove = self.m_embedding_external_ids.index(name)
+    def delete_item_by_external_id(self, external_id: str) -> GalleryDeletionStatus:
+        if external_id in self.m_embedding_external_ids:
+            index_to_remove = self.m_embedding_external_ids.index(external_id)
 
             # Remove from m_embedding_external_ids
             del self.m_embedding_external_ids[index_to_remove]
@@ -430,7 +430,7 @@ class Gallery:
                     updated_data = [
                         item
                         for item in data
-                        if item.get("FaceRecognition", {}).get("Name") != name
+                        if item.get("FaceRecognition", {}).get("Name") != external_id
                     ]
                     with open(self.m_json_file_path, "w") as f:
                         json.dump(updated_data, f, indent=4)

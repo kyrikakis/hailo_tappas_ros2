@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 import pytest
 import numpy as np
-from hailo_face_recognition.face_gallery import (
+from hailo_common.embeddings_gallery import (
     Gallery,
     GalleryAppendStatus,
     GalleryDeletionStatus,
@@ -359,7 +359,7 @@ def test_add_item_to_existing_gallery(gallery_and_json: tuple[Gallery, Any]):
     gallery.update([mock_detection])
 
     assert (
-        gallery.append_new_item(name="Stefanos", append=False)
+        gallery.append_new_item(external_id="Stefanos", append=False)
         == GalleryAppendStatus.SUCCESS
     )
 
@@ -403,7 +403,7 @@ def test_add_two_items_to_empty_gallery(tmp_path: Path):
     ]
 
     gallery.update([mock_detection])
-    gallery.append_new_item(name="Stefanos", append=False)
+    gallery.append_new_item(external_id="Stefanos", append=False)
 
     # Mock detection with dissimilar embedding
     mock_detection2 = MagicMock()
@@ -423,7 +423,7 @@ def test_add_two_items_to_empty_gallery(tmp_path: Path):
     ]
 
     gallery.update([mock_detection2])
-    gallery.append_new_item(name="Max", append=False)
+    gallery.append_new_item(external_id="Max", append=False)
 
     # Assertions
     calls = mock_detection.add_object.call_args_list
@@ -471,7 +471,7 @@ def test_replace_identical_item_to_empty_gallery(tmp_path: Path):
 
     gallery.update([mock_detection])
     assert (
-        gallery.append_new_item(name="Stefanos", append=False)
+        gallery.append_new_item(external_id="Stefanos", append=False)
         == GalleryAppendStatus.SUCCESS
     )
 
@@ -496,7 +496,7 @@ def test_replace_identical_item_to_empty_gallery(tmp_path: Path):
 
     gallery.update([mock_detection2])
     assert (
-        gallery.append_new_item(name="Max", append=True) == GalleryAppendStatus.SUCCESS
+        gallery.append_new_item(external_id="Max", append=True) == GalleryAppendStatus.SUCCESS
     )
 
     # Assertions
@@ -531,7 +531,7 @@ def test_replace_identical_item_to_empty_gallery(tmp_path: Path):
     )
 
 
-def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path: Path):
+def test_replace_identical_item_with_the_same_external_id_to_empty_gallery(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     identical_matrix = generate_realistic_embedding()
@@ -555,7 +555,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path: Pa
 
     gallery.update([mock_detection])
     assert (
-        gallery.append_new_item(name="Stefanos", append=False)
+        gallery.append_new_item(external_id="Stefanos", append=False)
         == GalleryAppendStatus.SUCCESS
     )
 
@@ -580,7 +580,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path: Pa
 
     gallery.update([mock_detection2])
     assert (
-        gallery.append_new_item(name="Stefanos", append=True)
+        gallery.append_new_item(external_id="Stefanos", append=True)
         == GalleryAppendStatus.SUCCESS
     )
 
@@ -616,7 +616,7 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path: Pa
     )
 
 
-def test_add_similar_embedding_with_identical_name_item_exists(
+def test_add_similar_embedding_with_identical_external_id_item_exists(
     gallery_and_json, max_face_matrix
 ):
     gallery, _ = gallery_and_json
@@ -640,12 +640,12 @@ def test_add_similar_embedding_with_identical_name_item_exists(
 
     gallery.update([mock_detection])
     assert (
-        gallery.append_new_item(name="Max", append=False)
-        == GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND
+        gallery.append_new_item(external_id="Max", append=False)
+        == GalleryAppendStatus.ID_FOUND_WITH_SIMILAR_EMBEDDING
     )
 
 
-def test_add_similar_embedding_with_different_name_item_exists(
+def test_add_similar_embedding_with_different_external_id_item_exists(
     gallery_and_json, max_face_matrix
 ):
     gallery, _ = gallery_and_json
@@ -669,12 +669,12 @@ def test_add_similar_embedding_with_different_name_item_exists(
 
     gallery.update([mock_detection])
     assert (
-        gallery.append_new_item(name="Sefanos", append=False)
+        gallery.append_new_item(external_id="Sefanos", append=False)
         == GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND_WITH_DIFFERENT_ID
     )
 
 
-def test_add_distant_embedding_identical_name_item_exists(
+def test_add_distant_embedding_identical_external_id_item_exists(
     gallery_and_json, max_face_matrix
 ):
     gallery, _ = gallery_and_json
@@ -696,7 +696,7 @@ def test_add_distant_embedding_identical_name_item_exists(
 
     gallery.update([mock_detection])
     assert (
-        gallery.append_new_item(name="Max", append=False)
+        gallery.append_new_item(external_id="Max", append=False)
         == GalleryAppendStatus.ID_FOUND_WITH_DISTANT_EMBEDDING
     )
 
@@ -705,7 +705,7 @@ def test_add_item_to_empty_gallery_NO_EMBEDDINGS_FOUND(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     assert (
-        gallery.append_new_item(name="Stefanos", append=False)
+        gallery.append_new_item(external_id="Stefanos", append=False)
         == GalleryAppendStatus.NO_EMBEDDINGS_FOUND
     )
 
@@ -733,7 +733,7 @@ def test_add_item_to_empty_gallery_MULTIPLE_EMBEDDINGS_FOUND(tmp_path: Path):
     gallery.update([mock_detection, mock_detection])
 
     assert (
-        gallery.append_new_item(name="Stefanos", append=False)
+        gallery.append_new_item(external_id="Stefanos", append=False)
         == GalleryAppendStatus.MULTIPLE_EMBEDDINGS_FOUND
     )
 
@@ -763,11 +763,11 @@ def test_delete_one_item(tmp_path: Path):
     gallery.update([mock_detection])
     assert len(gallery.tracking_id_to_global_id) == 0
     assert (
-        gallery.append_new_item(name="Stefanos", append=False)
+        gallery.append_new_item(external_id="Stefanos", append=False)
         == GalleryAppendStatus.SUCCESS
     )
     assert len(gallery.tracking_id_to_global_id) == 1
-    assert gallery.delete_item_by_name("Stefanos") == GalleryDeletionStatus.SUCCESS
+    assert gallery.delete_item_by_external_id("Stefanos") == GalleryDeletionStatus.SUCCESS
     # Assertions
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 1
@@ -785,7 +785,7 @@ def test_delete_one_item(tmp_path: Path):
 def test_delete_one_item_not_found(gallery_and_json):
     gallery, test_json_path = gallery_and_json
 
-    assert gallery.delete_item_by_name("Stefanos") == GalleryDeletionStatus.NOT_FOUND
+    assert gallery.delete_item_by_external_id("Stefanos") == GalleryDeletionStatus.NOT_FOUND
 
     # Check if the file was created and written to
     assert os.path.exists(str(test_json_path))

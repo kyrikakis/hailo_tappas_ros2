@@ -12,3 +12,5 @@ hailo_face_recognition/hailo_face_recognition/resources/yolov8s_h8l.hef
 hailo_face_recognition/hailo_face_recognition/resources/face_recognition.mp4
 hailo_face_recognition/hailo_face_recognition/resources/face_recognition_local_gallery.json
 hailo_face_recognition/hailo_face_recognition/resources/local_gallery.json
+hailo_common/hailo_common/__pycache__/
+hailo_common/test/__pycache__/
