@@ -1,5 +1,5 @@
 services:
-  hailo-rpi-service:
+  hailo-tappas-service:
     build: .
     environment:
       - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR

@@ -1,8 +1,8 @@
 {
-    "name": "hailo-rpi-ros2",
+    "name": "hailo-tappas-ros2",
     "dockerComposeFile": "../docker-compose.yaml",
-    "service": "hailo-rpi-service",
-    "workspaceFolder": "/workspaces/src/hailo_rpi_ros2",
+    "service": "hailo-tappas-service",
+    "workspaceFolder": "/workspaces/src/hailo_tappas_ros2",
     "overrideCommand": false,
     "customizations": {
       "vscode": {

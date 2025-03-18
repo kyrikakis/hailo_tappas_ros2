@@ -62,12 +62,12 @@ RUN source /opt/ros/jazzy/setup.bash && \
     cd /workspaces && \
     colcon build --symlink-install
 
-RUN mkdir -p /workspaces/src/hailo_rpi_ros2/
-COPY . /workspaces/src/hailo_rpi_ros2/
-RUN cp /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
+RUN mkdir -p /workspaces/src/hailo_tappas_ros2/
+COPY . /workspaces/src/hailo_tappas_ros2/
+RUN cp /workspaces/src/hailo_tappas_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
 
 # Install requirements
-RUN cd /workspaces/src/hailo_rpi_ros2 && \
+RUN cd /workspaces/src/hailo_tappas_ros2 && \
     pip install -r requirements.txt --break-system-packages && \
     ./download_resources.sh
 
@@ -91,5 +91,5 @@ RUN cd / && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
 USER $USERNAME
 # terminal colors with xterm
 ENV TERM xterm
-WORKDIR /workspaces/src/hailo_rpi_ros2
+WORKDIR /workspaces/src/hailo_tappas_ros2
 CMD ["/bin/sh", "-c", "bash"]
