@@ -35,7 +35,7 @@ def generate_launch_description():
             hailo_params,
             {
                 "input": (
-                    "/workspaces/src/hailo_rpi_ros2/hailo_face_recognition/hailo_face_recognition/"
+                    "/workspaces/src/hailo_tappas_ros2/hailo_face_recognition/hailo_face_recognition/"
                     "resources/face_recognition.mp4"
                 )
             },

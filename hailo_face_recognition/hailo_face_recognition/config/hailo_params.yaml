@@ -1,5 +1,7 @@
 hailo_face_recognition:
   ros__parameters:
+      # options: rpi, /dev/video/*, libcamera, absolute file path
+      # See: https://github.com/kyrikakis/hailo-apps-infra/blob/main/hailo_apps_infra/gstreamer_helper_pipelines.py#L3
       input: rpi
       local_gallery_file: local_gallery.json # Empty file
       similarity_threshhold: 0.35

@@ -1,5 +1,5 @@
-# Hailo ROS2
-This project bundles ROS2 and Hailo tappas together in a Debian docker container to maximise maintainability portability and scalability keeping your host clean from dependencies. The project is also fully configured with Dev Containers using VS Code rapidly enbling developer to start coding right away. while being production ready with container auto-restart and supervisor support.
+# Hailo tappas ROS2
+This project bundles Hailo tappas and ROS2 together in a Debian docker container to maximise maintainability, portability and scalability keeping your host clean from dependencies. The project is also fully configured with Dev Containers using VS Code, rapidly enbling the developer to start working on their use case and not having to worry about the environment. while being production ready with container auto-restart and supervisor support.
 
 ## Supported versions
 
@@ -56,12 +56,12 @@ $ sudo dmesg | grep hailo
 ## Build the container and open a shell
 ```
 docker compose build
-docker compose up -d hailo-rpi-service
+docker compose up -d hailo-tappas-service
 ```
 Open a shell inside the container
 
 ```
-docker compose exec hailo-rpi-service /bin/bash
+docker compose exec hailo-tappas-service /bin/bash
 ```
 OR 
 This project is fully configured for Dev Containers, just open it in VSCode using the Dev Containers extension skipping the above steps.
@@ -70,11 +70,19 @@ This project is fully configured for Dev Containers, just open it in VSCode usin
 
 ## Face recognition
 
-A Face regognition ROS2 node based on tappas pipelines. Running face detection, face recognition and Yolo object detection in parallel. Publishing the detection data and video to ROS2 topics and exposing services for saving embeddings into a local gallery file. 
+A Face regognition ROS2 node based on tappas pipelines. Running face detection, face recognition and object detection in parallel. Publishing the detection data and video to ROS2 topics and exposing services for saving embeddings into a local gallery file. 
 
-The application is getting the most out of the Hailo 8 while keeping the CPU consuption on the host in relative low levels. The sweet spot for running smoothly is at 15 fps, enough for most of the use cases. There is an parameter allowing you to skip the Yolo inference and then it can easily go up to 30 fps.
+The application is getting the most out of the Hailo 8 while keeping the CPU consuption on the host in relative low levels. The sweet spot for running smoothly is at 15 fps on HD video, enough for most of the use cases. There is a parameter allowing you to skip the object detection inference and it can easily go up to 30 fps.
 
 ![Face Recognition and Yolo](hailo_face_recognition/hailo_face_recognition/resources/face_recognition.gif)
+
+## Models
+
+| Task | Model | HW Accuracy | FPS (Batch Size=8) | Input Resolution |
+| ---- | ----- | ----------- | ------------------ | ---------------- |
+|**Face Detection:** | scrfd_10g | 82.06 | 303.40 | 640x640x3 |
+|**Face Recognition:**| arcface_mobilefacenet_v1 | 99.47 | 3457.79 | 112x112x3 |
+|**Object Detection**| yolov8m | 49.10 | 139.10 | 640x640x3 |
 
 ## Test
 Running the until tests:
@@ -119,10 +127,16 @@ ros2 service call /hailo_face_recognition/delete_face hailo_msgs/srv/DeleteGalle
 
 ## Exposed Services
 
+These services allow you to manage the face gallery:
+
 | Name                                | Type                                                         | Description                                                  |
 | ----------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | /hailo_face_recognition/save_face   | [`hailo_msgs/srv/SaveFace`](hailo_msgs/srv/SaveFace.srv)     | Adding or appending embedding from current detection to face |
-| /hailo_face_recognition/delete_face | [`hailo_msgs/srv/DeleteFace`](hailo_msgs/srv/DeleteFace.srv) | Deleting all face embeddings from face                       |
+| /hailo_face_recognition/delete_face | [`hailo_msgs/srv/DeleteFace`](hailo_msgs/srv/DeleteFace.srv) | Deleting all face embeddings from face |
+
+## Configuration parameters
+
+The default cofiguration file is in the [config](/workspaces/src/hailo_rpi_ros2/hailo_face_recognition/hailo_face_recognition/config) directory
 
 ## Considerations
 
@@ -144,7 +158,7 @@ Hailo tappas is exposing the following main identifiers: tracking_id, global_id,
 
 Hailo <> ROS2 [`vision_msgs.msg.Detection2D`](https://github.com/ros-perception/vision_msgs/blob/4.1.1/vision_msgs/msg/Detection2D.msg) mappings:
 
-| ROS2 Detection2D                           | Hailo Detection                  |
+| ROS2 Detection2D Type                      | Hailo Detection Type             |
 | ------------------------------------------ | -------------------------------- |
 | Detection2D.id                             | tracing_id                       |
 | Detection2D.results[0].hypothesis.class_id | class_id + ": " + classification |

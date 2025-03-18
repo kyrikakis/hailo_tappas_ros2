@@ -35,7 +35,6 @@ gi.require_version("Gst", "1.0")
 # -----------------------------------------------------------------------------------------------
 
 
-# This class inherits from the hailo_rpi_common.GStreamerApp class
 class GStreamerFaceRecognitionApp(GStreamerApp):
     def __init__(
         self,
