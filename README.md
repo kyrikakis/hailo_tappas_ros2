@@ -1,7 +1,7 @@
 # Hailo tappas ROS2
 [![Version](https://img.shields.io/badge/version-1.0.1-green.svg)](https://github.com/kyrikakis/hailo_tappas_ros2/releases/tag/v1.0.1)
 
-This project streamlines the development and deployment of Hailo tappas applications within ROS 2, by providing a pre-configured, containerized environment. The project is also fully configured with Dev Containers using VS Code, enables rapid development of use cases, eliminating environment setup concerns, and delivers production-ready deployments with container auto-restart and supervisor support.
+Designed for efficient deployment on the Raspberry Pi 5, this project delivers a pre-configured container integrating Hailo tappas and ROS 2. It accelerates development with VS Code Dev Containers and ensures reliable production deployments through auto-restart and Supervisor as its process control system.
 
 ## Supported versions
 
@@ -55,27 +55,29 @@ $ sudo dmesg | grep hailo
 [    4.545602] hailo 0000:01:00.0: Firmware was loaded successfully
 [    4.572371] hailo 0000:01:00.0: Probing: Added board 1e60-2864, /dev/hailo0
 ```
-## Build the container and open a shell
+## Quick Start: Hailo Tappas with Docker Compose
+To build and run the service:
 ```
-docker compose build
-docker compose up -d hailo-tappas-service
+docker compose build && docker compose up -d hailo-tappas-service
 ```
-Open a shell inside the container
+To access the container shell:
 
 ```
 docker compose exec hailo-tappas-service /bin/bash
 ```
-OR
+**Alternatively, use VS Code Dev Containers:**
 
-This project is fully configured for Dev Containers, just open it in VSCode using the Dev Containers extension skipping the above steps.
+Open this project in VS Code with the Dev Containers extension for a fully pre-configured development environment, bypassing manual Docker commands.
 
 # Use Cases
 
 ## Face recognition
 
-A Face regognition ROS2 node based on this [example](https://github.com/hailo-ai/tappas/blob/v3.31.0/apps/h8/gstreamer/general/face_recognition/README.rst) tappas application. Running face detection, face recognition and object detection in parallel. Publishing the detection data and video to ROS2 topics and exposing services for saving embeddings into a local gallery file. 
+This ROS 2 node implements face recognition based on the **Hailo 8** tappas application example found [here](https://github.com/hailo-ai/tappas/blob/v3.31.0/apps/h8/gstreamer/general/face_recognition/README.rst). Building upon the original example, this node extends functionality by adding object detection alongside face detection and recognition. It publishes detection data and video streams to ROS2 topics and provides services for saving embeddings to a local gallery file.
 
-The application is getting the most out of **Hailo 8** while keeping the CPU consuption on the host in relative low levels. The sweet spot for running smoothly is at 15 fps on HD video resolution, enough for most of the use cases. There is a parameter allowing you to skip the object detection inference and it can easily go up to 30 fps.
+Pushing the **Hailo 8** to **85%-95%** capacity, this node achieves high performance with relatively low host CPU consumption. A smooth **15 FPS** at **HD** video resolution is attainable, suitable for many applications. For increased frame rates, a parameter allows disabling object detection, potentially reaching up to **30 FPS** or more.
+
+Furthermore, the original tappas [gallery](https://github.com/hailo-ai/tappas/blob/v3.31.0/core/hailo/plugins/gallery/gallery.hpp) has been modified, porting it to Python and enhancing its functionality. This includes support for multiple embeddings per person and the ability to add or remove embeddings during runtime. The modified gallery implementation can be found [here](hailo_tappas_ros2/hailo_common/hailo_common/embeddings_gallery.py).
 
 ![Face Recognition and Yolo](hailo_face_recognition/hailo_face_recognition/resources/face_recognition.gif)
 
@@ -83,8 +85,8 @@ The application is getting the most out of **Hailo 8** while keeping the CPU con
 
 | Task | Model | HW Accuracy | FPS (Batch Size=8) | Input Resolution |
 | ---- | ----- | ----------- | ------------------ | ---------------- |
-|**Face Detection:** | scrfd_10g | 82.06 | 303.40 | 640x640x3 |
-|**Face Recognition:**| arcface_mobilefacenet_v1 | 99.47 | 3457.79 | 112x112x3 |
+|**Face Detection** | scrfd_10g | 82.06 | 303.40 | 640x640x3 |
+|**Face Recognition**| arcface_mobilefacenet_v1 | 99.47 | 3457.79 | 112x112x3 |
 |**Object Detection**| yolov8m | 49.10 | 139.10 | 640x640x3 |
 
 ## Test
@@ -163,17 +165,17 @@ Hailo <> ROS2 [`vision_msgs.msg.Detection2D`](https://github.com/ros-perception/
 
 | ROS2 Detection2D Type                      | Hailo Detection Type             |
 | ------------------------------------------ | -------------------------------- |
-| Detection2D.id                             | tracing_id                       |
-| Detection2D.results[0].hypothesis.class_id | class_id + ": " + classification |
-| Detection2D.bbox                           | hailo_bbox                       |
+| `Detection2D.id`                             | `tracing_id`                         |
+| `Detection2D.results[0].hypothesis.class_id` | `class_id` + ": " + `classification` |
+| `Detection2D.bbox`                           | `hailo_bbox`                         |
 
-As you can see above ROS2 Detection2D have provisions for only the **Detection2D.id** and the **ObjectHypothesis.class_id** as such in this solution when a face is presented and regognised the **classification** is concatenated in the **ObjectHypothesis.class_id**. The **global_id** is not getting mapped anywhere.
+The ROS 2 `Detection2D` message provides fields for only two identifiers: `Detection2D.id` and `ObjectHypothesis.class_id`. Consequently, in this implementation, when a face is detected and recognized, the classification (e.g., person's name) is concatenated with the `class_id` within the `ObjectHypothesis.class_id` field. The `global_id`, representing persistent identity across application runs, is not directly mapped to a `Detection2D` field.
 
 ### Performance
 
-In the case of the host is engaging only to facilitate the models inference and running the GStreamer pipeline the CPU consumption is really low at around **20%** per core on RPi5.
+When running the face recognition [test](https://github.com/kyrikakis/hailo_tappas_ros2/blob/main/hailo_face_recognition/hailo_face_recognition/launch/hailo.test.launch.py) with a small gallery of **10** embeddings and detecting **1-2** faces per frame, the **Raspberry Pi 5's** CPU usage remains remarkably low, averaging around **20%** per core. This indicates that the host's primary role is efficiently facilitating model inference and managing the GStreamer pipeline, with minimal overhead.
 
-When using the embeddings_gallery like in the face recognition use case the complexity is **O(N*M)** where **N** the total number of embeddings and **M** the number of face detections in a single frame. In short a RPi5 can handle around **200** embeddings with **5** faces on the same frame. This could be further improved by comparing the embeddings in a multithreading fashion and/or porting this code to C++ or Rust.
+However, scaling up the system to handle larger face galleries introduces significant computational challenges. Comparing **N** stored embeddings against **M** detected faces results in a complexity of **O(N*M)**. It's important to note that a single person can be represented by multiple embeddings; for instance, **5** embeddings per face are often sufficient for robust recognition from various angles and lighting conditions. This means a gallery of **250** embeddings could represent **50** different individuals. This complexity becomes a bottleneck on the **Raspberry Pi 5**, limiting practical performance to **250** embeddings with **10** detected faces per frame. While this may be enought for many use cases in order to overcome this limitation and enable applications with larger galleries, we can significantly improve performance by employing multithreading or porting the code to a more efficient language like C++ or Rust.
 
 ### ROS Domain ID
 
