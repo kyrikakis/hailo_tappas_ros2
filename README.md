@@ -1,7 +1,7 @@
 # Hailo tappas ROS2
 [![Version](https://img.shields.io/badge/version-1.0.1-green.svg)](https://github.com/kyrikakis/hailo_tappas_ros2/releases/tag/v1.0.1)
 
-Designed for efficient deployment on the Raspberry Pi 5, this project delivers a pre-configured container integrating Hailo tappas and ROS 2. It accelerates development with VS Code Dev Containers and ensures reliable production deployments through auto-restart and Supervisor as its process control system.
+Designed for efficient deployment on the Raspberry Pi 5, this project delivers a pre-configured container integrating Hailo tappas and ROS2. It accelerates development with VS Code Dev Containers and ensures reliable production deployments through auto-restart and Supervisor as its process control system.
 
 ## Supported versions
 
@@ -173,9 +173,9 @@ The ROS 2 `Detection2D` message provides fields for only two identifiers: `Detec
 
 ### Performance
 
-When running the face recognition [test](https://github.com/kyrikakis/hailo_tappas_ros2/blob/main/hailo_face_recognition/hailo_face_recognition/launch/hailo.test.launch.py) with a small gallery of **10** embeddings and detecting **1-2** faces per frame, the **Raspberry Pi 5's** CPU usage remains remarkably low, averaging around **20%** per core. This indicates that the host's primary role is efficiently facilitating model inference and managing the GStreamer pipeline, with minimal overhead.
+When running the face recognition [test](https://github.com/kyrikakis/hailo_tappas_ros2/blob/main/hailo_face_recognition/hailo_face_recognition/launch/hailo.test.launch.py) with a small gallery of **10** embeddings and detecting **1-2** faces per frame, the Raspberry Pi 5's CPU usage remains remarkably low, averaging around **20%** per core. This indicates that the host's primary role is efficiently facilitating model inference and managing the GStreamer pipeline, with minimal overhead.
 
-However, scaling up the system to handle larger face galleries introduces significant computational challenges. Comparing **N** stored embeddings against **M** detected faces results in a complexity of **O(N*M)**. It's important to note that a single person can be represented by multiple embeddings; for instance, **5** embeddings per face are often sufficient for robust recognition from various angles and lighting conditions. This means a gallery of **250** embeddings could represent **50** different individuals. This complexity becomes a bottleneck on the **Raspberry Pi 5**, limiting practical performance to **250** embeddings with **10** detected faces per frame. While this may be enought for many use cases in order to overcome this limitation and enable applications with larger galleries, we can significantly improve performance by employing multithreading or porting the code to a more efficient language like C++ or Rust.
+However, scaling up the system to handle larger face galleries introduces significant computational challenges. Comparing **N** stored embeddings against **M** detected faces results in a complexity of **O(N*M)**. It's important to note that a single person can be represented by multiple embeddings; for instance, **5** embeddings per face are often sufficient for robust recognition from various angles and lighting conditions. This means a gallery of **250** embeddings could represent **50** different individuals. This complexity becomes a bottleneck on the Raspberry Pi 5, limiting practical performance to **250** embeddings with **10** detected faces per frame. While this may be enought for many use cases in order to overcome this limitation and enable applications with larger galleries, we can significantly improve performance by employing multithreading or porting the code to a more efficient language like C++ or Rust.
 
 ### ROS Domain ID
 
