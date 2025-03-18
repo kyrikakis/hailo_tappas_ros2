@@ -42,7 +42,7 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
         video_width: int,
         video_height: int,
         video_fps: int,
-        run_yolo: bool,
+        object_detection: bool,
         app_callback: Callable[
             [gi.repository.Gst.Pad, gi.repository.Gst.PadProbeInfo], None
         ],
@@ -51,7 +51,7 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
         super().__init__(input, video_width, video_height, video_fps)
 
         self.app_callback = app_callback
-        self.run_yolo = run_yolo
+        self.object_detection = object_detection
         # Additional initialization code can be added here
         # Set Hailo parameters these parameters should be set based on the model used
         self.vdevice_group_id = 1
@@ -165,7 +165,7 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
 
     def object_detection_pipeline(self):
         object_detection_pipeline = ''
-        if self.run_yolo:
+        if self.object_detection:
             object_detection_pipeline = (
                 "queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! "
                 f"hailonet hef-path={self.yolo_hef_path} scheduling-algorithm=1 \

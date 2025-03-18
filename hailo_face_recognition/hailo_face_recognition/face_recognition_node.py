@@ -70,7 +70,7 @@ class FaceRecognitionNode(Node):
                 ("video_width", Parameter.Type.INTEGER),
                 ("video_height", Parameter.Type.INTEGER),
                 ("video_fps", Parameter.Type.INTEGER),
-                ("run_yolo", Parameter.Type.BOOL),
+                ("object_detection", Parameter.Type.BOOL),
             ],
         )
         input = self.get_parameter("input").get_parameter_value().string_value
@@ -89,7 +89,7 @@ class FaceRecognitionNode(Node):
             self.get_parameter("video_height").get_parameter_value().integer_value
         )
         video_fps = self.get_parameter("video_fps").get_parameter_value().integer_value
-        run_yolo = self.get_parameter("run_yolo").get_parameter_value().bool_value
+        object_detection = self.get_parameter("object_detection").get_parameter_value().bool_value
 
         gallery_file_path = self._get_absolute_file_path_in_build_dir(
             local_gallery_file
@@ -108,7 +108,7 @@ class FaceRecognitionNode(Node):
             video_width,
             video_height,
             video_fps,
-            run_yolo,
+            object_detection,
             self.face_recognition.app_callback,
         )
 

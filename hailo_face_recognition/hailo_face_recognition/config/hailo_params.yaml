@@ -8,4 +8,4 @@ hailo_face_recognition:
       video_width: 1280
       video_height: 720
       video_fps: 15
-      run_yolo: true
+      object_detection: true # Running the object detection

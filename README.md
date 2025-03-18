@@ -1,4 +1,6 @@
 # Hailo tappas ROS2
+[![Version](https://img.shields.io/badge/version-1.0.1-green.svg)](https://github.com/kyrikakis/hailo_tappas_ros2/releases/tag/v1.0.1)
+
 This project bundles Hailo tappas and ROS2 together in a Debian docker container to maximise maintainability, portability and scalability keeping your host clean from dependencies. The project is also fully configured with Dev Containers using VS Code, rapidly enbling the developer to start working on their use case and not having to worry about the environment. while being production ready with container auto-restart and supervisor support.
 
 ## Supported versions
