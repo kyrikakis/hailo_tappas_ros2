@@ -2,7 +2,7 @@ from setuptools import setup
 import os
 from glob import glob
 
-package_name = "hailo_rpi_ros2"
+package_name = "hailo_face_recognition"
 
 setup(
     name=package_name,
@@ -33,7 +33,7 @@ setup(
     tests_require=["pytest", "pydocstyle"],
     entry_points={
         "console_scripts": [
-            "face_recognition_node = hailo_rpi_ros2.face_recognition_node:main",
+            "face_recognition_node = hailo_face_recognition.face_recognition_node:main",
         ],
     },
 )

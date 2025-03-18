@@ -16,8 +16,8 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from hailo_rpi_ros2 import face_gallery
-from hailo_rpi_ros2 import face_recognition
+from hailo_face_recognition import face_gallery
+from hailo_face_recognition import face_recognition
 import gi
 from gi.repository import Gst
 from vision_msgs.msg import (

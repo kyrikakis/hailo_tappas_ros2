@@ -18,7 +18,7 @@ colcon test --event-handlers console_direct+
 ```
 Running the end to end test:
 ```
-ros2 launch hailo_rpi_ros2 hailo.test.launch.py
+ros2 launch hailo_face_recognition hailo.test.launch.py
 ```
 
 ## Run
@@ -28,7 +28,7 @@ supervisorctl stop hailo
 ```
 If you want to run it directly:
 ```
-ros2 launch hailo_rpi_ros2 hailo.launch.py
+ros2 launch hailo_face_recognition hailo.launch.py
 ```
 
 ### Acknowledgements

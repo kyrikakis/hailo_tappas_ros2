@@ -19,7 +19,7 @@ from hailo_apps_infra.hailo_rpi_common import (
     get_numpy_from_buffer,
     app_callback_class,
 )
-from hailo_rpi_ros2.face_gallery import (
+from hailo_face_recognition.face_gallery import (
     Gallery,
 )
 from vision_msgs.msg import (

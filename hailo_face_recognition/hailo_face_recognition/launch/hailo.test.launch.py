@@ -23,19 +23,19 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
 
     hailo_params = os.path.join(
-        get_package_share_directory("hailo_rpi_ros2"), "config", "hailo_params.yaml"
+        get_package_share_directory("hailo_face_recognition"), "config", "hailo_params.yaml"
     )
 
     hailo_detection_node = Node(
-        package="hailo_rpi_ros2",
+        package="hailo_face_recognition",
         executable="face_recognition_node",
-        name="face_recognition",
+        name="hailo_face_recognition",
         output="screen",
         parameters=[
             hailo_params,
             {
                 "input": (
-                    "/workspaces/src/hailo_rpi_ros2/hailo_rpi_ros2/hailo_rpi_ros2/"
+                    "/workspaces/src/hailo_rpi_ros2/hailo_face_recognition/hailo_face_recognition/"
                     "resources/face_recognition.mp4"
                 )
             },

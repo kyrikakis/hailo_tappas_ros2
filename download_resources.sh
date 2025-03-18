@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the resource directory
-RESOURCE_DIR="hailo_rpi_ros2/hailo_rpi_ros2/resources"
+RESOURCE_DIR="hailo_face_recognition/hailo_face_recognition/resources"
 mkdir -p "$RESOURCE_DIR"
 
 # Define download function with file existence check and retries

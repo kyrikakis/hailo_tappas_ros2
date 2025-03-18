@@ -75,7 +75,7 @@ RUN cd /workspaces/src/hailo_rpi_ros2 && \
 RUN source /opt/ros/jazzy/setup.bash && \
     cd /workspaces && \
     colcon build --symlink-install && \
-    colcon test --packages-select hailo_rpi_ros2 \
+    colcon test --packages-select hailo_face_recognition \
         --return-code-on-test-failure --event-handlers console_direct+
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh

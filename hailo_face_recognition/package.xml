@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>hailo_rpi_ros2</name>
+  <name>hailo_face_recognition</name>
   <version>0.0.1</version>
   <description>ROS 2 package for Hailo RPi</description>
   <maintainer email="kirikakis@gmail.com">Stefanos Kyrikakis</maintainer>
   <license>MIT License</license>
 
   <build_depend>rclpy</build_depend>
-  <build_depend>hailo_rpi_ros2_interfaces</build_depend>
+  <build_depend>hailo_face_recognition_interfaces</build_depend>
   <build_depend>vision_msgs</build_depend>
 
   <test_depend>ament_copyright</test_depend>
@@ -16,10 +16,10 @@
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
   <test_depend>vision_msgs</test_depend>
-  <test_depend>hailo_rpi_ros2_interfaces</test_depend>
+  <test_depend>hailo_face_recognition_interfaces</test_depend>
 
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>hailo_rpi_ros2_interfaces</exec_depend>
+  <exec_depend>hailo_face_recognition_interfaces</exec_depend>
   <exec_depend>vision_msgs</exec_depend>
 
   <export>

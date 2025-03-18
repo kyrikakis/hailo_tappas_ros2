@@ -1,4 +1,4 @@
-face_recognition:
+hailo_face_recognition:
   ros__parameters:
       input: rpi
       local_gallery_file: local_gallery.json # Empty file

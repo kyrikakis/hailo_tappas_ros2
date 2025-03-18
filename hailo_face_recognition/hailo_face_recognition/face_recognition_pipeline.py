@@ -20,7 +20,7 @@ from hailo_apps_infra.hailo_rpi_common import (
 from hailo_apps_infra.gstreamer_helper_pipelines import (
     SOURCE_PIPELINE,
 )
-from hailo_rpi_ros2.gstreamer_app import (
+from hailo_face_recognition.gstreamer_app import (
     GStreamerApp,
 )
 import gi

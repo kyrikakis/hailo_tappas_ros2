@@ -4,11 +4,6 @@
     "service": "hailo-rpi-service",
     "workspaceFolder": "/workspaces/src/hailo_rpi_ros2",
     "overrideCommand": false,
-    // "updateContentCommand": "bash .devcontainer/post_creation_script.sh",
-    // "postCreateCommand": [
-    //   "/usr/bin/supervisord"
-    // ],
-    // "postStartCommand" : "/usr/bin/supervisord",
     "customizations": {
       "vscode": {
         "extensions": [

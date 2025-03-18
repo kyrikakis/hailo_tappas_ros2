@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 import pytest
 import numpy as np
-from hailo_rpi_ros2.face_gallery import (
+from hailo_face_recognition.face_gallery import (
     Gallery,
     GalleryAppendStatus,
     GalleryDeletionStatus,

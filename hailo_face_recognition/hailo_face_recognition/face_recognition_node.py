@@ -16,19 +16,19 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CompressedImage
-from hailo_rpi_ros2_interfaces.srv import (
+from hailo_face_recognition_interfaces.srv import (
     SaveFace,
     DeleteFace,
 )
-from hailo_rpi_ros2 import face_recognition
-from hailo_rpi_ros2.face_gallery import (
+from hailo_face_recognition import face_recognition
+from hailo_face_recognition.face_gallery import (
     Gallery,
     GalleryAppendStatus,
     GalleryDeletionStatus,
 )
 import cv2
 from rclpy import Parameter
-from hailo_rpi_ros2.face_recognition_pipeline import GStreamerFaceRecognitionApp
+from hailo_face_recognition.face_recognition_pipeline import GStreamerFaceRecognitionApp
 from threading import Thread
 import os
 from typing import (
@@ -42,7 +42,7 @@ from vision_msgs.msg import (
 
 class FaceRecognitionNode(Node):
     def __init__(self):
-        Node.__init__(self, "face_recognition")
+        Node.__init__(self, "hailo_face_recognition")
 
         self.image_publisher_compressed = self.create_publisher(
             CompressedImage, "~/image_bbx/compressed", 10

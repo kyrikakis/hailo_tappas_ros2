@@ -72,7 +72,7 @@ class Gallery:
     def __init__(
         self,
         json_file_path="local_gallery.json",
-        similarity_thr=0.40,
+        similarity_thr=0.35,
     ):
         self.m_embeddings: List[List[np.ndarray]] = []
         self.tracking_id_to_global_id: Dict[int, int] = {}
