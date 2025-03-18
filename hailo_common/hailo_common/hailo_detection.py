@@ -19,7 +19,7 @@ from hailo_apps_infra.hailo_rpi_common import (
     get_numpy_from_buffer,
     app_callback_class,
 )
-from hailo_face_recognition.face_gallery import (
+from hailo_common.embeddings_gallery import (
     Gallery,
 )
 from vision_msgs.msg import (
@@ -42,7 +42,7 @@ import cv2
 gi.require_version("Gst", "1.0")
 
 
-class FaceRecognition(app_callback_class):
+class HailoDetection(app_callback_class):
     def __init__(
         self,
         gallery: Gallery,

@@ -16,8 +16,12 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from hailo_face_recognition import face_gallery
-from hailo_face_recognition import face_recognition
+from hailo_common.embeddings_gallery import (
+    Gallery
+)
+from hailo_common.hailo_detection import (
+    HailoDetection
+)
 import gi
 from gi.repository import Gst
 from vision_msgs.msg import (
@@ -29,7 +33,7 @@ gi.require_version("Gst", "1.0")
 
 @pytest.fixture
 def mock_gallery():
-    return MagicMock(spec=face_gallery.Gallery)
+    return MagicMock(spec=Gallery)
 
 
 @pytest.fixture
@@ -99,10 +103,10 @@ def test_app_callback(
     mock_info,
     mock_get_roi,
 ):
-    face_recog = face_recognition.FaceRecognition(
+    hailo_detection = HailoDetection(
         mock_gallery, mock_frame_callback, mock_detections_callback
     )
-    result = face_recog.app_callback(mock_pad, mock_info)
+    result = hailo_detection.app_callback(mock_pad, mock_info)
 
     assert result == Gst.PadProbeReturn.OK
     mock_gallery.update.assert_called_once_with(
@@ -159,10 +163,10 @@ def test_app_callback_no_buffer(
     mock_get_roi,
 ):
     mock_info.get_buffer.return_value = None
-    face_recog = face_recognition.FaceRecognition(
+    hailo_detection = HailoDetection(
         mock_gallery, mock_frame_callback, mock_detections_callback
     )
-    result = face_recog.app_callback(mock_pad, mock_info)
+    result = hailo_detection.app_callback(mock_pad, mock_info)
 
     assert result == Gst.PadProbeReturn.OK
     mock_get_roi.return_value.assert_not_called()

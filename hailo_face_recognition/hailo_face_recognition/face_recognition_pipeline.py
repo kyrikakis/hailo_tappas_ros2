@@ -20,7 +20,7 @@ from hailo_apps_infra.hailo_rpi_common import (
 from hailo_apps_infra.gstreamer_helper_pipelines import (
     SOURCE_PIPELINE,
 )
-from hailo_face_recognition.gstreamer_app import (
+from hailo_common.gstreamer_app import (
     GStreamerApp,
 )
 import gi
@@ -60,6 +60,7 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
         nms_score_threshold = 0.3
         nms_iou_threshold = 0.45
 
+        self.current_path = os.path.dirname(os.path.abspath(__file__))
         infra_post_process_path = "/usr/local/lib/python3.11/dist-packages/resources/"
         tappas_post_process_path = (
             "/usr/lib/aarch64-linux-gnu/hailo/tappas/post_processes/"
