@@ -6,4 +6,4 @@ hailo_face_recognition:
       video_width: 1280
       video_height: 720
       video_fps: 15
-      run_yolo: false
+      run_yolo: true

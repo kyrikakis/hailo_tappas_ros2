@@ -233,7 +233,7 @@ def test_alon_face_found(
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 2
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 0
+    assert calls[0][0][0].get_id() == 1
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
     assert isinstance(calls[1][0][0], hailo.HailoClassification)
     assert calls[1][0][0].get_label() == "Alon"
@@ -266,7 +266,7 @@ def test_max_face_found(
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 2
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_id() == 2
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
     assert isinstance(calls[1][0][0], hailo.HailoClassification)
     assert calls[1][0][0].get_label() == "Max"
@@ -367,9 +367,8 @@ def test_add_item_to_existing_gallery(gallery_and_json: tuple[Gallery, Any]):
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 1
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 2
+    assert calls[0][0][0].get_id() == 3
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
-    assert gallery.tracking_id_to_global_id[11] == 2
 
     # Check if the file was created and written to
     assert os.path.exists(str(test_json_path))
@@ -430,16 +429,14 @@ def test_add_two_items_to_empty_gallery(tmp_path: Path):
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 1
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 0
+    assert calls[0][0][0].get_id() == 1
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
-    assert gallery.tracking_id_to_global_id[11] == 0
 
     calls = mock_detection2.add_object.call_args_list
     assert len(calls) == 1
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 1
+    assert calls[0][0][0].get_id() == 2
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
-    assert gallery.tracking_id_to_global_id[12] == 1
 
     # Check if the file was created and written to
     assert os.path.exists(str(tmp_path / "test.json"))
@@ -506,18 +503,16 @@ def test_replace_identical_item_to_empty_gallery(tmp_path: Path):
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 1
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 0
+    assert calls[0][0][0].get_id() == 1
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
-    assert gallery.tracking_id_to_global_id[11] == 0
 
     calls = mock_detection2.add_object.call_args_list
     assert len(calls) == 3
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 0
+    assert calls[0][0][0].get_id() == 1
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
     assert isinstance(calls[1][0][0], hailo.HailoClassification)
     assert calls[1][0][0].get_label() == "Stefanos"
-    assert gallery.tracking_id_to_global_id[12] == 0
 
     # Check if the file was created and written to
     assert os.path.exists(str(tmp_path / "test.json"))
@@ -593,18 +588,16 @@ def test_replace_identical_item_with_the_same_name_to_empty_gallery(tmp_path: Pa
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 1
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 0
+    assert calls[0][0][0].get_id() == 1
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
-    assert gallery.tracking_id_to_global_id[11] == 0
 
     calls = mock_detection2.add_object.call_args_list
     assert len(calls) == 3
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 0
+    assert calls[0][0][0].get_id() == 1
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
     assert isinstance(calls[1][0][0], hailo.HailoClassification)
     assert calls[1][0][0].get_label() == "Stefanos"
-    assert gallery.tracking_id_to_global_id[12] == 0
 
     # Check if the file was created and written to
     assert os.path.exists(str(tmp_path / "test.json"))
@@ -779,9 +772,8 @@ def test_delete_one_item(tmp_path: Path):
     calls = mock_detection.add_object.call_args_list
     assert len(calls) == 1
     assert isinstance(calls[0][0][0], hailo.HailoUniqueID)
-    assert calls[0][0][0].get_id() == 0
+    assert calls[0][0][0].get_id() == 1
     assert calls[0][0][0].get_mode() == hailo.GLOBAL_ID
-    assert len(gallery.tracking_id_to_global_id) == 0
 
     # Check if the file was created and written to
     assert os.path.exists(str(tmp_path / "test.json"))

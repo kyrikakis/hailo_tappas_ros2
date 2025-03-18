@@ -111,7 +111,7 @@ def map_to_ros2_detection_2d_array(
         track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
 
         detection_2d = Detection2D()
-        if len(track) == 1:
+        if len(track) >= 1:
             track_id = track[0].get_id()
             detection_2d.id = str(track_id)
 

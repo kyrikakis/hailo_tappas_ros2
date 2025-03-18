@@ -298,7 +298,8 @@ class Gallery:
             if obj.get_mode() == hailo.GLOBAL_ID
         ]
         if not global_ids:
-            detection.add_object(hailo.HailoUniqueID(global_id, hailo.GLOBAL_ID))
+            # Transform into an 1-Based index
+            detection.add_object(hailo.HailoUniqueID(global_id + 1, hailo.GLOBAL_ID))
 
     def _new_embedding_to_global_id(
         self, new_embedding: np.ndarray, detection: hailo.HailoDetection, track_id: int
