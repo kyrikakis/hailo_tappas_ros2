@@ -1,7 +1,7 @@
 # Hailo tappas ROS2
 [![Version](https://img.shields.io/badge/version-1.0.1-green.svg)](https://github.com/kyrikakis/hailo_tappas_ros2/releases/tag/v1.0.1)
 
-This project bundles Hailo tappas and ROS2 in a Debian docker container to maximise maintainability, portability and scalability keeping your host clean from dependencies. The project is also fully configured with Dev Containers using VS Code, rapidly enbling the developer to start working on their use case and not having to worry about the environment. while being production ready with container auto-restart and supervisor support.
+This project streamlines the development and deployment of Hailo tappas applications within ROS 2, by providing a pre-configured, containerized environment. The project is also fully configured with Dev Containers using VS Code, enables rapid development of use cases, eliminating environment setup concerns, and delivers production-ready deployments with container auto-restart and supervisor support.
 
 ## Supported versions
 
@@ -65,7 +65,8 @@ Open a shell inside the container
 ```
 docker compose exec hailo-tappas-service /bin/bash
 ```
-OR 
+OR
+
 This project is fully configured for Dev Containers, just open it in VSCode using the Dev Containers extension skipping the above steps.
 
 # Use Cases
@@ -138,7 +139,7 @@ These services allow you to manage the face gallery:
 
 ## Configuration parameters
 
-The default cofiguration file is in the [config](/workspaces/src/hailo_rpi_ros2/hailo_face_recognition/hailo_face_recognition/config) directory
+The default configuration file is [here](hailo_face_recognition/hailo_face_recognition/config/hailo_params.yaml).
 
 ## Considerations
 
