@@ -43,12 +43,16 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
         video_width: int,
         video_height: int,
         video_fps: int,
+        run_yolo: bool,
         app_callback: Callable[
             [gi.repository.Gst.Pad, gi.repository.Gst.PadProbeInfo], None
         ],
     ):
         # Call the parent class constructor
         super().__init__(input, video_width, video_height, video_fps)
+
+        self.app_callback = app_callback
+        self.run_yolo = run_yolo
         # Additional initialization code can be added here
         # Set Hailo parameters these parameters should be set based on the model used
         self.vdevice_group_id = 1
@@ -116,8 +120,6 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
             "libface_recognition_post.so",
         )
 
-        self.app_callback = app_callback
-
         self.thresholds_str = (
             f"nms-score-threshold={nms_score_threshold} "
             f"nms-iou-threshold={nms_iou_threshold} "
@@ -162,16 +164,18 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
         return pre_detection_pipeline
 
     def object_detection_pipeline(self):
-        object_detection_pipeline = (
-            "queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! "
-            f"hailonet hef-path={self.yolo_hef_path} scheduling-algorithm=1 \
-                vdevice_group_id={self.vdevice_group_id} \
-                    batch-size=1 nms-score-threshold=0.3 nms-iou-threshold=0.45 \
-                        output-format-type=HAILO_FORMAT_TYPE_FLOAT32 ! "
-            "queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! "
-            f"hailofilter function-name={self.yolo_post_function_name} \
-                so-path={self.yolo_post_process_so} qos=false ! "
-        )
+        object_detection_pipeline = ''
+        if self.run_yolo:
+            object_detection_pipeline = (
+                "queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! "
+                f"hailonet hef-path={self.yolo_hef_path} scheduling-algorithm=1 \
+                    vdevice_group_id={self.vdevice_group_id} \
+                        batch-size=1 nms-score-threshold=0.3 nms-iou-threshold=0.45 \
+                            output-format-type=HAILO_FORMAT_TYPE_FLOAT32 ! "
+                "queue leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! "
+                f"hailofilter function-name={self.yolo_post_function_name} \
+                    so-path={self.yolo_post_process_so} qos=false ! "
+            )
         return object_detection_pipeline
 
     def face_detection_pipeline(self):

@@ -66,6 +66,7 @@ class FaceRecognitionNode(Node):
                 ("video_width", Parameter.Type.INTEGER),
                 ("video_height", Parameter.Type.INTEGER),
                 ("video_fps", Parameter.Type.INTEGER),
+                ("run_yolo", Parameter.Type.BOOL),
             ],
         )
         input = (
@@ -98,6 +99,11 @@ class FaceRecognitionNode(Node):
             .get_parameter_value()
             .integer_value
         )
+        run_yolo = (
+            self.get_parameter("run_yolo")
+            .get_parameter_value()
+            .bool_value
+        )
 
         gallery_file_path = self._get_absolute_file_path_in_build_dir(
             local_gallery_file
@@ -116,7 +122,8 @@ class FaceRecognitionNode(Node):
             video_width,
             video_height,
             video_fps,
-            self.face_recognition.app_callback
+            run_yolo,
+            self.face_recognition.app_callback,
         )
 
         self.detection_thread = Thread(target=gstreamer_app.run)
