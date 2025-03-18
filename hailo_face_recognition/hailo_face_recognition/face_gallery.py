@@ -76,7 +76,7 @@ class Gallery:
     ):
         self.m_embeddings: List[List[np.ndarray]] = []
         self.tracking_id_to_global_id: Dict[int, int] = {}
-        self.m_embedding_names: List[str] = []
+        self.m_embedding_external_ids: List[str] = []
         self.m_similarity_thr: float = similarity_thr
         self.m_json_file_path: Optional[str] = json_file_path
 
@@ -123,14 +123,14 @@ class Gallery:
         }
 
     def _decode_hailo_face_recognition_result(
-        self, object_json: list, roi: Any, embedding_names: list
+        self, object_json: list, roi: Any, external_ids: list
     ):
         for entry in object_json:
             if isinstance(entry, dict) and "FaceRecognition" in entry:
                 face_recognition = entry["FaceRecognition"]
                 if "Embeddings" in face_recognition:
                     global_id = self._create_new_global_id()
-                    embedding_names.append(face_recognition.get("Name", ""))
+                    external_ids.append(face_recognition.get("Name", ""))
                     embeddings = face_recognition["Embeddings"]
                     for embedding_entry in embeddings:
                         if "HailoMatrix" in embedding_entry:
@@ -184,7 +184,7 @@ class Gallery:
         with open(file_path, "r") as f:
             data = json.load(f)
         roi = hailo.HailoROI(hailo.HailoBBox(0.0, 0.0, 1.0, 1.0))
-        self._decode_hailo_face_recognition_result(data, roi, self.m_embedding_names)
+        self._decode_hailo_face_recognition_result(data, roi, self.m_embedding_external_ids)
         # Just calling this for extra validation
         roi.get_objects_typed(hailo.HAILO_MATRIX)
 
@@ -272,14 +272,14 @@ class Gallery:
         return embeddings[0].get_data()
 
     def _handle_local_embedding(self, detection: hailo.HailoDetection, global_id: int):
-        if (global_id) < len(self.m_embedding_names):
+        if (global_id) < len(self.m_embedding_external_ids):
             classification_type = "recognition_result"
             existing_recognitions = [
                 obj
                 for obj in detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
                 if obj.get_classification_type() == classification_type
             ]
-            name = self.m_embedding_names[global_id]
+            name = self.m_embedding_external_ids[global_id]
             if not existing_recognitions:
                 detection.add_object(
                     hailo.HailoClassification(classification_type, name, 1.0)
@@ -330,7 +330,7 @@ class Gallery:
         track_id: int,
     ):
         global_id = self._create_new_global_id()
-        self.m_embedding_names.append(name)
+        self.m_embedding_external_ids.append(name)
         self._add_embedding(global_id, new_embedding)
         self._add_global_id_to_object(detection, global_id, track_id)
         self._save_embedding_to_json_file(name, new_embedding, global_id)
@@ -375,14 +375,14 @@ class Gallery:
         closest_global_id, min_distance = self._get_closest_global_id(new_embedding)
         if min_distance > self.m_similarity_thr:
             # If no similar embedding found
-            if name in self.m_embedding_names:
+            if name in self.m_embedding_external_ids:
                 if append:
-                    global_id = self.m_embedding_names.index(name)
+                    global_id = self.m_embedding_external_ids.index(name)
                 else:
                     return GalleryAppendStatus.ID_FOUND_WITH_DISTANT_EMBEDDING
             else:
                 global_id = self._create_new_global_id()
-                self.m_embedding_names.append(name)
+                self.m_embedding_external_ids.append(name)
             self._add_embedding(global_id, new_embedding)
             self._add_global_id_to_object(detection, global_id, track_id)
             self._save_embedding_to_json_file(name, new_embedding, global_id)
@@ -390,24 +390,24 @@ class Gallery:
         else:
             # Similar embedding found
             if append:
-                old_name = self.m_embedding_names[closest_global_id]
-                self.m_embedding_names[closest_global_id] = name
+                old_name = self.m_embedding_external_ids[closest_global_id]
+                self.m_embedding_external_ids[closest_global_id] = name
                 self._add_embedding(closest_global_id, new_embedding)
                 self._add_global_id_to_object(detection, closest_global_id, track_id)
                 self._append_embedding_in_json(old_name, name, new_embedding)
                 return GalleryAppendStatus.SUCCESS
             else:
-                if name in self.m_embedding_names:
+                if name in self.m_embedding_external_ids:
                     return GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND
                 else:
                     return GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND_WITH_DIFFERENT_ID
 
     def delete_item_by_name(self, name: str) -> GalleryDeletionStatus:
-        if name in self.m_embedding_names:
-            index_to_remove = self.m_embedding_names.index(name)
+        if name in self.m_embedding_external_ids:
+            index_to_remove = self.m_embedding_external_ids.index(name)
 
-            # Remove from m_embedding_names
-            del self.m_embedding_names[index_to_remove]
+            # Remove from m_embedding_external_ids
+            del self.m_embedding_external_ids[index_to_remove]
 
             # Remove from m_embeddings
             del self.m_embeddings[index_to_remove]
