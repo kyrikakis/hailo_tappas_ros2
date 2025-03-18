@@ -72,9 +72,9 @@ This project is fully configured for Dev Containers, just open it in VSCode usin
 
 ## Face recognition
 
-A Face regognition ROS2 node based on tappas pipelines. Running face detection, face recognition and object detection in parallel. Publishing the detection data and video to ROS2 topics and exposing services for saving embeddings into a local gallery file. 
+A Face regognition ROS2 node based on this [example](https://github.com/hailo-ai/tappas/blob/v3.31.0/apps/h8/gstreamer/general/face_recognition/README.rst) tappas application. Running face detection, face recognition and object detection in parallel. Publishing the detection data and video to ROS2 topics and exposing services for saving embeddings into a local gallery file. 
 
-The application is getting the most out of the Hailo 8 while keeping the CPU consuption on the host in relative low levels. The sweet spot for running smoothly is at 15 fps on HD video, enough for most of the use cases. There is a parameter allowing you to skip the object detection inference and it can easily go up to 30 fps.
+The application is getting the most out of **Hailo 8** while keeping the CPU consuption on the host in relative low levels. The sweet spot for running smoothly is at 15 fps on HD video resolution, enough for most of the use cases. There is a parameter allowing you to skip the object detection inference and it can easily go up to 30 fps.
 
 ![Face Recognition and Yolo](hailo_face_recognition/hailo_face_recognition/resources/face_recognition.gif)
 
@@ -180,5 +180,6 @@ The ROS domain ID is set to #20. Feel free to change that to you needs.
 
 # Acknowledgements
 * https://github.com/hailo-ai/hailo-rpi5-examples
+* https://github.com/hailo-ai/tappas
 * https://github.com/canonical/pi-ai-kit-ubuntu
 * https://github.com/Ar-Ray-code/rpi-bullseye-ros2
