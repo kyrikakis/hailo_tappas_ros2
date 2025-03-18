@@ -25,11 +25,11 @@ from enum import Enum
 
 class GalleryAppendStatus(Enum):
     SUCCESS = 0
-    FACE_EXISTS_WITH_IDENTICAL_NAME = 1
-    FACE_EXISTS_WITH_DIFFERENT_NAME = 2
-    NAME_EXISTS_WITH_NON_SIMILAR_FACE = 3
-    MULTIPLE_FACES_FOUND = 4
-    NO_FACES_FOUND = 5
+    SIMILAR_EMBEDDING_FOUND = 1
+    SIMILAR_EMBEDDING_FOUND_WITH_DIFFERENT_ID = 2
+    ID_FOUND_WITH_DISTANT_EMBEDDING = 3
+    MULTIPLE_EMBEDDINGS_FOUND = 4
+    NO_EMBEDDINGS_FOUND = 5
     ERROR = 6
 
 
@@ -354,9 +354,9 @@ class Gallery:
     def append_new_item(self, name: str, append: bool) -> GalleryAppendStatus:
         # debugpy.debug_this_thread()
         if not self.last_face_detections:
-            return GalleryAppendStatus.NO_FACES_FOUND
+            return GalleryAppendStatus.NO_EMBEDDINGS_FOUND
         if len(self.last_face_detections) > 1:
-            return GalleryAppendStatus.MULTIPLE_FACES_FOUND
+            return GalleryAppendStatus.MULTIPLE_EMBEDDINGS_FOUND
         detection = self.last_face_detections[0]
         track_ids = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
         if not track_ids:
@@ -379,7 +379,7 @@ class Gallery:
                 if append:
                     global_id = self.m_embedding_names.index(name)
                 else:
-                    return GalleryAppendStatus.NAME_EXISTS_WITH_NON_SIMILAR_FACE
+                    return GalleryAppendStatus.ID_FOUND_WITH_DISTANT_EMBEDDING
             else:
                 global_id = self._create_new_global_id()
                 self.m_embedding_names.append(name)
@@ -398,9 +398,9 @@ class Gallery:
                 return GalleryAppendStatus.SUCCESS
             else:
                 if name in self.m_embedding_names:
-                    return GalleryAppendStatus.FACE_EXISTS_WITH_IDENTICAL_NAME
+                    return GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND
                 else:
-                    return GalleryAppendStatus.FACE_EXISTS_WITH_DIFFERENT_NAME
+                    return GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND_WITH_DIFFERENT_ID
 
     def delete_item_by_name(self, name: str) -> GalleryDeletionStatus:
         if name in self.m_embedding_names:

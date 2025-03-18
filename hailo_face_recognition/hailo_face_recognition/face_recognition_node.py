@@ -16,9 +16,9 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CompressedImage
-from hailo_face_recognition_interfaces.srv import (
-    SaveFace,
-    DeleteFace,
+from hailo_msgs.srv import (
+    SaveGalleryItem,
+    DeleteGalleryItem,
 )
 from hailo_face_recognition import face_recognition
 from hailo_face_recognition.face_gallery import (
@@ -53,9 +53,11 @@ class FaceRecognitionNode(Node):
             Detection2DArray, "~/detections", 10
         )
 
-        self.create_service(SaveFace, "~/save_face", self.add_face_callback)
+        self.create_service(SaveGalleryItem, "~/save_face", self.add_face_callback)
 
-        self.create_service(DeleteFace, "~/delete_face", self.delete_face_callback)
+        self.create_service(
+            DeleteGalleryItem, "~/delete_face", self.delete_face_callback
+        )
 
         self.declare_parameters(
             namespace="",
@@ -69,15 +71,9 @@ class FaceRecognitionNode(Node):
                 ("run_yolo", Parameter.Type.BOOL),
             ],
         )
-        input = (
-            self.get_parameter("input")
-            .get_parameter_value()
-            .string_value
-        )
+        input = self.get_parameter("input").get_parameter_value().string_value
         local_gallery_file = (
-            self.get_parameter("local_gallery_file")
-            .get_parameter_value()
-            .string_value
+            self.get_parameter("local_gallery_file").get_parameter_value().string_value
         )
         similarity_threshhold = (
             self.get_parameter("similarity_threshhold")
@@ -85,25 +81,13 @@ class FaceRecognitionNode(Node):
             .double_value
         )
         video_width = (
-            self.get_parameter("video_width")
-            .get_parameter_value()
-            .integer_value
+            self.get_parameter("video_width").get_parameter_value().integer_value
         )
         video_height = (
-            self.get_parameter("video_height")
-            .get_parameter_value()
-            .integer_value
+            self.get_parameter("video_height").get_parameter_value().integer_value
         )
-        video_fps = (
-            self.get_parameter("video_fps")
-            .get_parameter_value()
-            .integer_value
-        )
-        run_yolo = (
-            self.get_parameter("run_yolo")
-            .get_parameter_value()
-            .bool_value
-        )
+        video_fps = self.get_parameter("video_fps").get_parameter_value().integer_value
+        run_yolo = self.get_parameter("run_yolo").get_parameter_value().bool_value
 
         gallery_file_path = self._get_absolute_file_path_in_build_dir(
             local_gallery_file
@@ -136,35 +120,37 @@ class FaceRecognitionNode(Node):
         absolute_file_path = os.path.join(current_dir, "resources", file)
         return absolute_file_path
 
-    def add_face_callback(self, request: SaveFace.Request, response: SaveFace.Response):
-        self.get_logger().info(f"Incoming request: Add face {request.name}")
-        status = self.gallery.append_new_item(request.name, request.append)
+    def add_face_callback(
+        self, request: SaveGalleryItem.Request, response: SaveGalleryItem.Response
+    ):
+        self.get_logger().info(f"Incoming request: Add face {request.id}")
+        status = self.gallery.append_new_item(request.id, request.append)
         match status:
             case GalleryAppendStatus.SUCCESS:
                 response.result = 0
                 response.message = "Person added"
-            case GalleryAppendStatus.FACE_EXISTS_WITH_IDENTICAL_NAME:
+            case GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND:
                 response.result = 1
                 response.message = (
-                    "Similar embedding found with identical name. Aborted "
+                    "Similar embedding found with the same id. Aborted, "
                     "Consider calling with append=true"
                 )
-            case GalleryAppendStatus.FACE_EXISTS_WITH_DIFFERENT_NAME:
+            case GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND_WITH_DIFFERENT_ID:
                 response.result = 1
                 response.message = (
-                    "Similar embedding found with different name. Aborted "
+                    "Similar embedding found with different id. Aborted, "
                     "Consider calling with append=true"
                 )
-            case GalleryAppendStatus.NAME_EXISTS_WITH_NON_SIMILAR_FACE:
+            case GalleryAppendStatus.ID_FOUND_WITH_DISTANT_EMBEDDING:
                 response.result = 1
                 response.message = (
-                    "The name exists but no similar embedding found. Aborted "
+                    "The id exists with distant embedding(s). Aborted, "
                     "Consider calling with append=true"
                 )
-            case GalleryAppendStatus.MULTIPLE_FACES_FOUND:
+            case GalleryAppendStatus.MULTIPLE_EMBEDDINGS_FOUND:
                 response.result = 2
                 response.message = "Error: Multiple faces found"
-            case GalleryAppendStatus.NO_FACES_FOUND:
+            case GalleryAppendStatus.NO_EMBEDDINGS_FOUND:
                 response.result = 3
                 response.message = "Error: No faces found"
             case _:
@@ -174,10 +160,10 @@ class FaceRecognitionNode(Node):
         return response
 
     def delete_face_callback(
-        self, request: DeleteFace.Request, response: DeleteFace.Response
+        self, request: DeleteGalleryItem.Request, response: DeleteGalleryItem.Response
     ):
-        self.get_logger().info(f"Incoming request: Delete face {request.name}")
-        status = self.gallery.delete_item_by_name(request.name)
+        self.get_logger().info(f"Incoming request: Delete face {request.id}")
+        status = self.gallery.delete_item_by_name(request.id)
         match status:
             case GalleryDeletionStatus.SUCCESS:
                 response.result = 0

@@ -641,7 +641,7 @@ def test_add_similar_embedding_with_identical_name_item_exists(
     gallery.update([mock_detection])
     assert (
         gallery.append_new_item(name="Max", append=False)
-        == GalleryAppendStatus.FACE_EXISTS_WITH_IDENTICAL_NAME
+        == GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND
     )
 
 
@@ -670,7 +670,7 @@ def test_add_similar_embedding_with_different_name_item_exists(
     gallery.update([mock_detection])
     assert (
         gallery.append_new_item(name="Sefanos", append=False)
-        == GalleryAppendStatus.FACE_EXISTS_WITH_DIFFERENT_NAME
+        == GalleryAppendStatus.SIMILAR_EMBEDDING_FOUND_WITH_DIFFERENT_ID
     )
 
 
@@ -697,20 +697,20 @@ def test_add_distant_embedding_identical_name_item_exists(
     gallery.update([mock_detection])
     assert (
         gallery.append_new_item(name="Max", append=False)
-        == GalleryAppendStatus.NAME_EXISTS_WITH_NON_SIMILAR_FACE
+        == GalleryAppendStatus.ID_FOUND_WITH_DISTANT_EMBEDDING
     )
 
 
-def test_add_item_to_empty_gallery_no_faces_found(tmp_path: Path):
+def test_add_item_to_empty_gallery_NO_EMBEDDINGS_FOUND(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     assert (
         gallery.append_new_item(name="Stefanos", append=False)
-        == GalleryAppendStatus.NO_FACES_FOUND
+        == GalleryAppendStatus.NO_EMBEDDINGS_FOUND
     )
 
 
-def test_add_item_to_empty_gallery_multiple_faces_found(tmp_path: Path):
+def test_add_item_to_empty_gallery_MULTIPLE_EMBEDDINGS_FOUND(tmp_path: Path):
     gallery = Gallery(json_file_path=str(tmp_path / "test.json"))
 
     # Mock detection with dissimilar embedding
@@ -734,7 +734,7 @@ def test_add_item_to_empty_gallery_multiple_faces_found(tmp_path: Path):
 
     assert (
         gallery.append_new_item(name="Stefanos", append=False)
-        == GalleryAppendStatus.MULTIPLE_FACES_FOUND
+        == GalleryAppendStatus.MULTIPLE_EMBEDDINGS_FOUND
     )
 
 

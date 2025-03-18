@@ -106,7 +106,7 @@ def map_to_ros2_detection_2d_array(
         person_embeddings = detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
         if len(person_embeddings) > 0:
             label += f": {person_embeddings[0].get_label()}"
-            print("person: ", person_embeddings[0].get_label())
+            print("classification: ", person_embeddings[0].get_label())
         track_id = 0
         track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
 

@@ -8,7 +8,7 @@
   <license>MIT License</license>
 
   <build_depend>rclpy</build_depend>
-  <build_depend>hailo_face_recognition_interfaces</build_depend>
+  <build_depend>hailo_msgs</build_depend>
   <build_depend>vision_msgs</build_depend>
 
   <test_depend>ament_copyright</test_depend>
@@ -16,10 +16,10 @@
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
   <test_depend>vision_msgs</test_depend>
-  <test_depend>hailo_face_recognition_interfaces</test_depend>
+  <test_depend>hailo_msgs</test_depend>
 
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>hailo_face_recognition_interfaces</exec_depend>
+  <exec_depend>hailo_msgs</exec_depend>
   <exec_depend>vision_msgs</exec_depend>
 
   <export>
