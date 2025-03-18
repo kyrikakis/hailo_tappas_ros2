@@ -2,7 +2,6 @@ services:
   hailo-rpi-service:
     build: .
     environment:
-      - DISPLAY=${DISPLAY}
       - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
       - UDEV=1
     devices:

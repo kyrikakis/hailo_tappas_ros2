@@ -55,21 +55,28 @@ RUN echo "export ROS_DOMAIN_ID=20" >> ~/.bashrc && \
 # packages em and empy build under the same namespace: https://github.com/ros/genmsg/issues/63
 RUN pip uninstall em --break-system-packages && pip install empy==3.3.4 --break-system-packages
 
+RUN mkdir -p /workspaces/src/
+RUN source /opt/ros/jazzy/setup.bash && \
+    cd /workspaces/src && \
+    git clone --depth 1 --branch 4.1.1 https://github.com/ros-perception/vision_msgs.git && \
+    cd /workspaces && \
+    colcon build --symlink-install
+
 RUN mkdir -p /workspaces/src/hailo_rpi_ros2/
 COPY . /workspaces/src/hailo_rpi_ros2/
 RUN cp /workspaces/src/hailo_rpi_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
 
-RUN cd /workspaces && \
-    git clone --depth 1 --branch 4.1.1 https://github.com/ros-perception/vision_msgs.git
-
-# Install requirements and build
-RUN source /opt/ros/jazzy/setup.bash && \
-    cd /workspaces/src/hailo_rpi_ros2 && \
+# Install requirements
+RUN cd /workspaces/src/hailo_rpi_ros2 && \
     pip install -r requirements.txt --break-system-packages && \
-    ./download_resources.sh && \
+    ./download_resources.sh
+
+# Build project
+RUN source /opt/ros/jazzy/setup.bash && \
     cd /workspaces && \
     colcon build --symlink-install && \
-    colcon test --return-code-on-test-failure --event-handlers console_direct+
+    colcon test --packages-select hailo_rpi_ros2 \
+        --return-code-on-test-failure --event-handlers console_direct+
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
