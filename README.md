@@ -134,8 +134,8 @@ These services allow you to manage the face gallery:
 
 | Name                                | Type                                                         | Description                                                  |
 | ----------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| /hailo_face_recognition/save_face   | [`hailo_msgs/srv/SaveFace`](hailo_msgs/srv/SaveFace.srv)     | Adding or appending embedding from current detection to face |
-| /hailo_face_recognition/delete_face | [`hailo_msgs/srv/DeleteFace`](hailo_msgs/srv/DeleteFace.srv) | Deleting all face embeddings from face |
+| /hailo_face_recognition/save_face   | [`hailo_msgs/srv/SaveGalleryItem`](hailo_msgs/srv/SaveGalleryItem.srv)     | Adding or appending embedding from current detection to face |
+| /hailo_face_recognition/delete_face | [`hailo_msgs/srv/DeleteGalleryItem`](hailo_msgs/srv/DeleteGalleryItem.srv) | Deleting all face embeddings from face |
 
 ## Configuration parameters
 
@@ -177,7 +177,7 @@ When using the embeddings_gallery like in the face recognition use case the comp
 
 ### ROS Domain ID
 
-The ROS domain ID is set to #20. Feel free to change that to you needs.
+The ROS domain ID is set to #20. Feel free to change that to your needs.
 
 # Acknowledgements
 * https://github.com/hailo-ai/hailo-rpi5-examples
