@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM --platform=linux/arm64 debian:bookworm
 
 SHELL ["/bin/bash", "-c"]
 
