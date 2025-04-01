@@ -3,17 +3,16 @@ name: Build Docker Image
 on:
   pull_request:
     branches:
-    - '**'
-  push:
-    branches:
-      - main
+      - '**'
+  workflow_call:
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
+      packages: write  # required for accessing GHCR caches
 
     steps:
       - name: 🛎 Checkout code
@@ -22,10 +21,10 @@ jobs:
       - name: 🔑 Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Set up Docker Buildx
+      - name: 🏗️ Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Cache Docker layers
+      - name: 💾 Restore Docker layer cache
         uses: actions/cache@v3
         with:
           path: ~/.cache/docker
@@ -33,10 +32,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docker-
 
-      - name: 🔨 Build Docker image
+      - name: 🔨 Build image (no push)
         run: |
+          docker buildx create --use
           docker buildx build \
             --platform linux/arm64 \
-            --cache-from=type=registry,ref=ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:cache \
-            --cache-to=type=registry,ref=ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:cache,mode=max \
-            --tag ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:latest .
+            --cache-from=type=registry,ref=ghcr.io/kyrikakis/hailo_tappas_ros2:cache \
+            --tag temp/validate:${{ github.sha }} \
+            --load .
