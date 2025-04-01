@@ -21,9 +21,6 @@ jobs:
     steps:
       - name: 🛎 Checkout code
         uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install -y wget
 
       - name: 🔑 Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
