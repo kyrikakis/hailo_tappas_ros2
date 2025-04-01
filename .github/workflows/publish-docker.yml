@@ -29,7 +29,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/docker
           key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
@@ -38,13 +38,12 @@ jobs:
 
       - name: 🔨 Build Docker image
         run: |
-          docker buildx create --use
-          docker buildx build --platform linux/arm64 -t ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:latest .
+          docker buildx build --platform linux/amd64,linux/arm64 --cache-from=type=registry,ref=ghcr.io/${{ github.repository_owner }}/hailo-tappas-ros2:cache --tag ghcr.io/${{ github.repository_owner }}/my-image-name:latest .
 
       - name: 📤 Push Docker image to GHCR
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:latest
+          docker push ghcr.io/${{ github.repository_owner }}/hailo-tappas-ros2:latest
 
       - name: ✅ Verify pushed image
         run: |
-          echo "Image pushed successfully: ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:latest"
+          echo "Image pushed successfully: ghcr.io/${{ github.repository_owner }}/hailo-tappas-ros2:latest"
