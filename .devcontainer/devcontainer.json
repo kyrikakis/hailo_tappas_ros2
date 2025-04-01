@@ -12,7 +12,9 @@
             "ms-vscode.cpptools-extension-pack",
             "ms-vscode.cmake-tools",
             "twxs.cmake",
-            "yzhang.markdown-all-in-one"
+            "yzhang.markdown-all-in-one",
+            "github.vscode-github-actions",
+            "DavidAnson.vscode-markdownlint"
         ]
       }
     }

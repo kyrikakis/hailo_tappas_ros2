@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    uses: ./.github/workflows/build-docker-image.yaml
+    uses: ./.github/workflows/build-image.yaml
 
   tag:
     name: Create Git Tag
@@ -35,12 +35,20 @@ jobs:
         run: |
           latest=${{ env.latest_tag }}
           IFS='.' read -r major minor patch <<< "${latest#v}"
-          new="v$major.$minor.$((patch + 1))"
-          echo "new_tag=$new" >> $GITHUB_ENV
+          new_tag="v$major.$minor.$((patch + 1))"
+          echo "new_tag=$new_tag" >> $GITHUB_ENV
+          echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
 
-      - name: Push Tag
+      - name: Create and push tag
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git tag ${{ env.new_tag }}
           git push origin ${{ env.new_tag }}
+
+  release:
+    name: Release Image
+    needs: tag
+    uses: ./.github/workflows/release-image.yaml
+    with:
+      version: ${{ needs.tag.outputs.new_tag }}

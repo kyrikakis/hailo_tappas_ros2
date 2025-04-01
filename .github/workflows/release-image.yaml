@@ -1,9 +1,11 @@
 name: Release Docker Image
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   release:
@@ -32,12 +34,12 @@ jobs:
             --cache-from=type=registry,ref=ghcr.io/kyrikakis/hailo_tappas_ros2:cache \
             --cache-to=type=registry,ref=ghcr.io/kyrikakis/hailo_tappas_ros2:cache,mode=max \
             --tag ghcr.io/kyrikakis/hailo_tappas_ros2:latest \
-            --tag ghcr.io/kyrikakis/hailo_tappas_ros2:${GITHUB_REF#refs/tags/} \
+            --tag ghcr.io/kyrikakis/hailo_tappas_ros2:${{ inputs.version }} \
             --push .
 
-      - name: 📦 Create GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}    # 👈 custom title
+          tag_name: ${{ inputs.version }}
+          name: Release ${{ inputs.version }}
           generate_release_notes: true

@@ -1,4 +1,5 @@
 # Hailo tappas ROS2
+
 [![Version](https://img.shields.io/badge/version-1.0.1-green.svg)](https://github.com/kyrikakis/hailo_tappas_ros2/releases/tag/v1.0.1)
 
 Designed for efficient deployment on the Raspberry Pi 5, this project delivers a pre-configured container integrating Hailo tappas and ROS2. It accelerates development with VS Code Dev Containers and ensures reliable production deployments through auto-restart and Supervisor as its process control system.
@@ -55,21 +56,27 @@ $ sudo dmesg | grep hailo
 [    4.545602] hailo 0000:01:00.0: Firmware was loaded successfully
 [    4.572371] hailo 0000:01:00.0: Probing: Added board 1e60-2864, /dev/hailo0
 ```
+
 ## Quick Start: Hailo Tappas with Docker Compose
+
 To run the service:
+
 ```
 docker compose up -d hailo-tappas-service
 ```
+
 To access the container shell:
 
 ```
 docker compose exec hailo-tappas-service /bin/bash
 ```
+
 **Alternatively, use VS Code Dev Containers:**
 
 Open this project in VS Code with the Dev Containers extension for a fully pre-configured development environment, bypassing manual Docker commands.
 
-#### Build image locally (Optional)
+### Build image locally (Optional)
+
 ```
 docker build -t ghcr.io/kyrikakis/hailo_tappas_ros2:latest .
 ```
@@ -95,38 +102,53 @@ Furthermore, the original tappas [gallery](https://github.com/hailo-ai/tappas/bl
 |**Object Detection**| yolov8m | 49.10 | 139.10 | 640x640x3 |
 
 ## Test
+
 Running the until tests:
+
 ```
 cd /workspaces && \
 colcon test --event-handlers console_direct+
 ```
+
 The ros node will run on the container startup, stop it:
+
 ```
 supervisorctl stop face_recognition
 ```
+
 Running the end to end test:
+
 ```
 ros2 launch hailo_face_recognition hailo.test.launch.py
 ```
+
 ## Run
+
 The ros node will run on the container startup, if you want to stop it run:
+
 ```
 supervisorctl stop face_recognition
 ```
+
 If you want to run it directly:
+
 ```
 ros2 launch hailo_face_recognition hailo.launch.py
 ```
+
 Saving a detected face in the gallery
+
 ```
 ros2 service call /hailo_face_recognition/save_face hailo_msgs/srv/SaveGalleryItem "{id: 'your_id', append: false}"
 ```
+
 Deleting a face from the gallery
+
 ```
 ros2 service call /hailo_face_recognition/delete_face hailo_msgs/srv/DeleteGalleryItem "{id: 'your_id'}"
 ```
 
-# API
+## API
 
 ## Published topics
 
@@ -186,8 +208,9 @@ However, scaling up the system to handle larger face galleries introduces signif
 
 The ROS domain ID is set to #20. Feel free to change that to your needs.
 
-# Acknowledgements
-* https://github.com/hailo-ai/hailo-rpi5-examples
-* https://github.com/hailo-ai/tappas
-* https://github.com/canonical/pi-ai-kit-ubuntu
-* https://github.com/Ar-Ray-code/rpi-bullseye-ros2
+## Acknowledgements
+
+* <https://github.com/hailo-ai/hailo-rpi5-examples>
+* <https://github.com/hailo-ai/tappas>
+* <https://github.com/canonical/pi-ai-kit-ubuntu>
+* <https://github.com/Ar-Ray-code/rpi-bullseye-ros2>
