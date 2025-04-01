@@ -56,9 +56,9 @@ $ sudo dmesg | grep hailo
 [    4.572371] hailo 0000:01:00.0: Probing: Added board 1e60-2864, /dev/hailo0
 ```
 ## Quick Start: Hailo Tappas with Docker Compose
-To build and run the service:
+To run the service:
 ```
-docker compose build && docker compose up -d hailo-tappas-service
+docker compose up -d hailo-tappas-service
 ```
 To access the container shell:
 
@@ -68,6 +68,11 @@ docker compose exec hailo-tappas-service /bin/bash
 **Alternatively, use VS Code Dev Containers:**
 
 Open this project in VS Code with the Dev Containers extension for a fully pre-configured development environment, bypassing manual Docker commands.
+
+#### Build image locally (Optional)
+```
+docker build -t ghcr.io/kyrikakis/hailo_tappas_ros2:latest .
+```
 
 # Use Cases
 
