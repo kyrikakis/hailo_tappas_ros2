@@ -1,0 +1,39 @@
+name: Publish Docker Image to GHCR
+
+on:
+  push:
+    branches:
+      - main
+      - '**'
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: 🛎 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y wget
+
+      - name: 🔑 Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: 🔨 Build Docker image
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/my-image-name:latest .
+
+      - name: 📤 Push Docker image to GHCR
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/my-image-name:latest
+
+      - name: ✅ Verify pushed image
+        run: |
+          echo "Image pushed successfully: ghcr.io/${{ github.repository_owner }}/my-image-name:latest"
