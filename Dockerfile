@@ -74,8 +74,8 @@ RUN cd /workspaces/src/hailo_tappas_ros2 && \
 # Build project
 RUN source /opt/ros/jazzy/setup.bash && \
     cd /workspaces && \
-    colcon build --symlink-install --packages-skip vision_msgs_rviz_plugins && \
-    colcon test --packages-skip vision_msgs_rviz_plugins \
+    colcon build --symlink-install --packages-skip vision_msgs vision_msgs_rviz_plugins && \
+    colcon test --packages-skip vision_msgs vision_msgs_rviz_plugins \
         --return-code-on-test-failure --event-handlers console_direct+
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh

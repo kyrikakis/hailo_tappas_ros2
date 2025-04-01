@@ -36,13 +36,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docker-
 
-      - name: 🔨 Build Docker image
+      - name: 🔨 Build and 📤 Push Docker image
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64 --cache-from=type=registry,ref=ghcr.io/${{ github.repository_owner }}/hailo-tappas-ros2:cache --tag ghcr.io/${{ github.repository_owner }}/my-image-name:latest .
-
-      - name: 📤 Push Docker image to GHCR
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/hailo-tappas-ros2:latest
+          docker buildx build \
+            --platform linux/arm64 \
+            --cache-from=type=registry,ref=ghcr.io/${{ github.repository_owner }}/hailo-tappas-ros2:cache \
+            --tag ghcr.io/${{ github.repository_owner }}/hailo-tappas-ros2:latest \
+            --push .
 
       - name: ✅ Verify pushed image
         run: |
