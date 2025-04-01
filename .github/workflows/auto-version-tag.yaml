@@ -1,0 +1,36 @@
+name: Auto Bump Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed to get all tags
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          tag=$(git describe --tags --abbrev=0 || echo v0.0.0)
+          echo "latest=$tag" >> $GITHUB_OUTPUT
+
+      - name: Calculate next patch version
+        id: bump
+        run: |
+          old=${{ steps.get_tag.outputs.latest }}
+          IFS='.' read -r major minor patch <<< "${old#v}"
+          next_patch=$((patch + 1))
+          echo "new=v$major.$minor.$next_patch" >> $GITHUB_OUTPUT
+
+      - name: Create new tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag ${{ steps.bump.outputs.new }}
+          git push origin ${{ steps.bump.outputs.new }}

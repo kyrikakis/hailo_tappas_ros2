@@ -1,4 +1,4 @@
-name: Publish Docker Image to GHCR
+name: Build Docker Image
 
 on:
   pull_request:
@@ -7,15 +7,12 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     permissions:
-      packages: write
       contents: read
 
     steps:
@@ -36,15 +33,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docker-
 
-      - name: 🔨 Build and 📤 Push Docker image
+      - name: 🔨 Build Docker image
         run: |
           docker buildx build \
             --platform linux/arm64 \
             --cache-from=type=registry,ref=ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:cache \
             --cache-to=type=registry,ref=ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:cache,mode=max \
-            --tag ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:latest \
-            --push .
-
-      - name: ✅ Verify pushed image
-        run: |
-          echo "Image pushed successfully: ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:latest"
+            --tag ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:latest .
