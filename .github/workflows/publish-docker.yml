@@ -27,7 +27,8 @@ jobs:
 
       - name: 🔨 Build Docker image
         run: |
-          docker build --platform linux/arm64 -t ghcr.io/${{ github.repository_owner }}/my-image-name:latest .
+          docker buildx create --use
+          docker buildx build --platform linux/arm64 -t ghcr.io/${{ github.repository_owner }}/hailo_tappas_ros2:latest .
 
       - name: 📤 Push Docker image to GHCR
         run: |
