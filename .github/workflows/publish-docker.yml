@@ -2,6 +2,7 @@ name: Publish Docker Image to GHCR
 
 on:
   pull_request:
+    branches:
     - '**'
   push:
     branches:
