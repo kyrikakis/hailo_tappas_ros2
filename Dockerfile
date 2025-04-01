@@ -60,7 +60,7 @@ RUN source /opt/ros/jazzy/setup.bash && \
     cd /workspaces/src && \
     git clone --depth 1 --branch 4.1.1 https://github.com/ros-perception/vision_msgs.git && \
     cd /workspaces && \
-    colcon build --symlink-install
+    colcon build --symlink-install --packages-skip vision_msgs_rviz_plugins
 
 RUN mkdir -p /workspaces/src/hailo_tappas_ros2/
 COPY . /workspaces/src/hailo_tappas_ros2/
@@ -74,8 +74,8 @@ RUN cd /workspaces/src/hailo_tappas_ros2 && \
 # Build project
 RUN source /opt/ros/jazzy/setup.bash && \
     cd /workspaces && \
-    colcon build --symlink-install && \
-    colcon test --packages-select hailo_face_recognition \
+    colcon build --symlink-install --packages-skip vision_msgs_rviz_plugins && \
+    colcon test --packages-skip vision_msgs_rviz_plugins \
         --return-code-on-test-failure --event-handlers console_direct+
 
 COPY ros_entrypoint.sh /ros_entrypoint.sh
