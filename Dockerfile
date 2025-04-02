@@ -62,6 +62,16 @@ RUN source /opt/ros/jazzy/setup.bash && \
     cd /workspaces && \
     colcon build --symlink-install --packages-skip vision_msgs_rviz_plugins
 
+# Checkout and build hailo-apps-infra fork
+# 2025/03-internal-1 👈 fork version
+RUN cd / && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
+    cd hailo-apps-infra && \
+    git checkout tags/2025/03-internal-1 && \
+    sed 's|https://github.com/kyrikakis/hailo-apps-infra.git|git@github.com:kyrikakis/hailo-apps-infra.git|g' \
+        .git/config > .git/config.tmp && \
+    mv .git/config.tmp .git/config && \
+    pip install -v -e . --break-system-packages
+
 RUN mkdir -p /workspaces/src/hailo_tappas_ros2/
 COPY . /workspaces/src/hailo_tappas_ros2/
 RUN cp /workspaces/src/hailo_tappas_ros2/supervisor/hailo.conf /etc/supervisor/conf.d/
@@ -81,12 +91,6 @@ RUN source /opt/ros/jazzy/setup.bash && \
 COPY ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x  /ros_entrypoint.sh
 ENTRYPOINT ["/ros_entrypoint.sh"]
-
-# Download app infra fork for any further development
-RUN cd / && git clone https://github.com/kyrikakis/hailo-apps-infra.git && \
-    cd hailo-apps-infra && sed 's|https://github.com/kyrikakis/hailo-apps-infra.git|git@github.com:kyrikakis/hailo-apps-infra.git|g' \
-    .git/config > .git/config.tmp && \
-    mv .git/config.tmp .git/config
 
 USER $USERNAME
 # terminal colors with xterm

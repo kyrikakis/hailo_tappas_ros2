@@ -60,7 +60,7 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
         nms_iou_threshold = 0.45
 
         self.current_path = os.path.dirname(os.path.abspath(__file__))
-        infra_post_process_path = "/usr/local/lib/python3.11/dist-packages/resources/"
+        infra_post_process_path = "/hailo-apps-infra/resources/"
         tappas_post_process_path = (
             "/usr/lib/aarch64-linux-gnu/hailo/tappas/post_processes/"
         )
