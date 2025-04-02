@@ -78,7 +78,7 @@ Open this project in VS Code with the Dev Containers extension for a fully pre-c
 ### Build image locally (Optional)
 
 ```
-docker build -t ghcr.io/kyrikakis/hailo_tappas_ros2:latest .
+docker build -t ghcr.io/kyrikakis/hailo_tappas_ros2:v1.0.1 .
 ```
 
 # Use Cases
