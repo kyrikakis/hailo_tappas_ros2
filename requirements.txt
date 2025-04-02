@@ -3,4 +3,4 @@ setproctitle
 opencv-python
 debugpy
 pydocstyle
-git+https://github.com/kyrikakis/hailo-apps-infra.git
+hailo-apps-infra

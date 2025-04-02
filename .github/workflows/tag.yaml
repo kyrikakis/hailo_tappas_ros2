@@ -19,10 +19,13 @@ jobs:
     needs: build
     if: success()
 
+    outputs:
+      new_tag: ${{ steps.bump.outputs.new_tag }}
+
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # required to get full tag history
 
       - name: Get Latest Tag
         id: get_latest_tag
@@ -39,10 +42,34 @@ jobs:
           echo "new_tag=$new_tag" >> $GITHUB_ENV
           echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
 
-      - name: Create and push tag
+      - name: Replace previous version with new one (excluding Dockerfile)
         run: |
+          old=${{ env.latest_tag }}
+          new=${{ steps.bump.outputs.new_tag }}
+          old_no_v="${old#v}"
+          new_no_v="${new#v}"
+      
+          echo "Replacing $old → $new and $old_no_v → $new_no_v"
+      
+          # Find files to update, excluding Dockerfile and its variants
+          find . -type f \
+            ! -name 'Dockerfile' \
+            ! -name 'Dockerfile.*' \
+            -exec grep -l "$old\|$old_no_v" {} + |
+            xargs sed -i "s/$old/$new/g; s/$old_no_v/$new_no_v/g"
+      
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+      
+          if ! git diff --quiet; then
+            git commit -am "Bump version from $old to $new"
+            git push
+          else
+            echo "No version changes found."
+          fi
+
+      - name: Create and push tag
+        run: |
           git tag ${{ env.new_tag }}
           git push origin ${{ env.new_tag }}
 
