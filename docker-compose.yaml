@@ -1,6 +1,6 @@
 services:
   hailo-tappas-service:
-    image: ghcr.io/kyrikakis/hailo_tappas_ros2:latest
+    image: ghcr.io/kyrikakis/hailo_tappas_ros2:1.0.1
     environment:
       - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
       - UDEV=1
