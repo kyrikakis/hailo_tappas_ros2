@@ -93,11 +93,14 @@ jobs:
             EOF
             )
             echo "$response"
-            echo "pr_number=$(echo "$response" | jq -r .number)" >> "$GITHUB_OUTPUT"
+            pr_number=$(echo "$response" | jq -r '.number')
+            echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+            echo "✅ GitHub output written: number=$pr_number"
+
 
       - name: Add auto-merge label
         uses: actions-ecosystem/action-add-labels@v1
         with:
             github_token: ${{ steps.app-token.outputs.token }}
-            number: ${{ steps.create_pr.outputs.pr_number }}
+            number: ${{ steps.create_pr.outputs.number }}
             labels: auto-merge
