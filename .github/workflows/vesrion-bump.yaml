@@ -99,5 +99,5 @@ jobs:
         uses: actions-ecosystem/action-add-labels@v1
         with:
             github_token: ${{ steps.app-token.outputs.token }}
-            issue_number: ${{ steps.create_pr.outputs.pr_number }}
+            number: ${{ steps.create_pr.outputs.pr_number }}
             labels: auto-merge
