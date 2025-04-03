@@ -3,7 +3,7 @@ name: Build and Create Version Bump PR
 on:
   push:
     branches:
-      - avoid-double-run
+      - main
 
 permissions:
   contents: write
