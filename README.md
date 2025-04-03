@@ -1,6 +1,6 @@
 # Hailo tappas ROS2
 
-[![Version](https://img.shields.io/badge/version-1.0.1-green.svg)](https://github.com/kyrikakis/hailo_tappas_ros2/releases/tag/v1.0.1)
+[![Version](https://img.shields.io/badge/version-1.0.2-green.svg)](https://github.com/kyrikakis/hailo_tappas_ros2/releases/tag/v1.0.2)
 
 Designed for efficient deployment on the Raspberry Pi 5, this project delivers a pre-configured container integrating Hailo tappas and ROS2. It accelerates development with VS Code Dev Containers and ensures reliable production deployments through auto-restart and Supervisor as its process control system.
 
@@ -78,7 +78,7 @@ Open this project in VS Code with the Dev Containers extension for a fully pre-c
 ### Build image locally (Optional)
 
 ```
-docker build -t ghcr.io/kyrikakis/hailo_tappas_ros2:v1.0.1 .
+docker build -t ghcr.io/kyrikakis/hailo_tappas_ros2:v1.0.2 .
 ```
 
 # Use Cases
