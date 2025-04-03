@@ -3,7 +3,7 @@ name: Build and Create Version Bump PR
 on:
   push:
     branches:
-      - main
+      - test-auto-merge
 
 permissions:
   contents: write
@@ -97,3 +97,17 @@ jobs:
             pr_number=$(echo "$response" | jq -r '.number')
             echo "number=$pr_number" >> "$GITHUB_OUTPUT"
             echo "✅ GitHub output written: number=$pr_number"
+
+      - name: Auto-merge version bump PR
+        env:
+            GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+            PR_NUMBER=${{ steps.create_pr.outputs.number }}
+            VERSION=${{ steps.bump.outputs.new_tag }}
+        
+            curl -s -X PUT \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge \
+            -d "{\"commit_title\": \"Bump version to $VERSION\", \"merge_method\": \"squash\"}"
+        
