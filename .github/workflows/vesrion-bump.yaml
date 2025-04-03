@@ -11,9 +11,9 @@ permissions:
   packages: write
 
 jobs:
-  build:
-    name: Build Docker Image
-    uses: ./.github/workflows/build-image.yaml
+#   build:
+#     name: Build Docker Image
+#     uses: ./.github/workflows/build-image.yaml
 
   version-bump:
     name: Bump Version and Open PR
@@ -79,11 +79,11 @@ jobs:
         env:
             GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-            curl -s -X POST \
-                -H "Authorization: Bearer $GH_TOKEN" \
-                -H "Accept: application/vnd.github+json" \
-                https://api.github.com/repos/${{ github.repository }}/pulls \
-                -d @- <<EOF
+            response=$(curl -s -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/pulls \
+            -d @- <<EOF
             {
                 "title": "Bump version to ${{ steps.bump.outputs.new_tag }}",
                 "head": "version-bump-${{ steps.bump.outputs.new_tag }}",
@@ -91,9 +91,13 @@ jobs:
                 "body": "This PR updates all version references to ${{ steps.bump.outputs.new_tag }}."
             }
             EOF
+            )
+            echo "$response"
+            echo "pr_number=$(echo "$response" | jq -r .number)" >> "$GITHUB_OUTPUT"
 
       - name: Add auto-merge label
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          github_token: ${{ steps.app-token.outputs.token }}
-          labels: auto-merge
+            github_token: ${{ steps.app-token.outputs.token }}
+            issue_number: ${{ steps.create_pr.outputs.pr_number }}
+            labels: auto-merge
