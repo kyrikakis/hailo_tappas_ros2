@@ -8,11 +8,12 @@ on:
 
 jobs:
   build:
+    if: ${{ !startsWith(github.head_ref, 'version-bump-') }}
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
-      packages: write  # required for accessing GHCR caches
+      packages: write
 
     steps:
       - name: 🛎 Checkout code

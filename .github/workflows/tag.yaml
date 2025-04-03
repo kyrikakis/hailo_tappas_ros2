@@ -1,0 +1,58 @@
+name: Tag and Release on Version Bump
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  tag:
+    name: Create Git Tag
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'Bump version to')
+
+    outputs:
+      new_tag: ${{ steps.extract.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get App Token
+        id: app-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ secrets.APP_ID }}
+          application_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Extract version from commit message
+        id: extract
+        run: |
+          version=$(echo "${{ github.event.head_commit.message }}" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+          echo "version=$version" >> $GITHUB_ENV
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Create tag via GitHub API
+        env:
+            GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+            VERSION=${{ env.version }}
+            SHA=$(git rev-parse HEAD)
+        
+            curl -s -X POST https://api.github.com/repos/${{ github.repository }}/git/refs \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                -d "{\"ref\": \"refs/tags/$VERSION\", \"sha\": \"$SHA\"}"
+
+  release:
+    name: Release Image
+    needs: tag
+    uses: ./.github/workflows/release-image.yaml
+    with:
+      version: ${{ needs.tag.outputs.new_tag }}
