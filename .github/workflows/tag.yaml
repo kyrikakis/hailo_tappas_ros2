@@ -64,7 +64,7 @@ jobs:
             -exec grep -l "$old\|$old_no_v" {} + |
             xargs sed -i "s/$old/$new/g; s/$old_no_v/$new_no_v/g"
 
-          git config user.name "kyrikakis-release-bot[bot]"
+          git config user.name "kyrikakis-release-bot"
           git config user.email "kyrikakis-release-bot[bot]@users.noreply.github.com"
 
           if ! git diff --quiet; then
