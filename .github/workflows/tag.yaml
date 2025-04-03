@@ -3,7 +3,7 @@ name: Tag and Release on Version Bump
 on:
   push:
     branches:
-      - main
+      - test-tag
 
 permissions:
   contents: write
