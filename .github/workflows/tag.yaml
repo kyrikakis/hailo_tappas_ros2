@@ -3,7 +3,7 @@ name: Tag and Release on Version Bump
 on:
   push:
     branches:
-      - test-tag
+      - main
 
 permissions:
   contents: write
@@ -19,9 +19,17 @@ jobs:
       new_tag: ${{ steps.extract.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Get App Token
+        id: app-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ secrets.APP_ID }}
+          application_private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Extract version from commit message
         id: extract
@@ -30,10 +38,12 @@ jobs:
           echo "version=$version" >> $GITHUB_ENV
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Create and push tag
+      - name: Create and push tag using app token
         run: |
+          git config user.name "kyrikakis-release-bot[bot]"
+          git config user.email "release-bot@users.noreply.github.com"
           git tag ${{ env.version }}
-          git push origin ${{ env.version }}
+          git push https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }} ${{ env.version }}
 
   release:
     name: Release Image
